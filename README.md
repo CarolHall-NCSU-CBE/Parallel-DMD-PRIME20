@@ -10,7 +10,8 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 
 ## Requirement and Installation
 - The package has been developed since 2001 using Fortran90
-- Fortran compiler `mpif90` is required. Intel Fortran Compiler must be installed on your device or the module that contains the compiler must be loaded before compiling. 
+- Parallelizing is done using Message Passing Interface (MPI)
+- OpenMPI compiler for Fortran `mpif90` is required. OpenMPI Fortran Compiler must be installed on your device or the module that contains the compiler must be loaded before compiling. 
 - The installation is through the terminal.
 - The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directoy on your local device. Once in '/src/' directory, create the executed file by using the command *`make`* 
 
