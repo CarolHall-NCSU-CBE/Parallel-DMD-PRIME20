@@ -1,4 +1,4 @@
-# Parallel DMD/PRIME20 - Coarsed-grained force field with discontinuous molecular dynamics simulations for peptide self-assembly modelling 
+# Parallel DMD/PRIME20 - Coarse-grained force field with discontinuous molecular dynamics simulations for peptide self-assembly modelling 
 ## Table of contents
 * [Introduction](#introduction)
 * [Requirement and Installation](#requirement-and-installation)
