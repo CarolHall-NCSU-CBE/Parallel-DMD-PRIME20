@@ -13,7 +13,11 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 - Parallelizing is done using Message Passing Interface (MPI)
 - OpenMPI compiler for Fortran `mpif90` is required. OpenMPI Fortran Compiler must be installed on your device or the module that contains the compiler must be loaded before compiling. 
 - The installation is through the terminal.
-- The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directoy on your local device. Once in '/src/' directory, create the executed file by using the command *`make`* 
+- The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directoy on your local device. Once in '/src/' directory, create the executed files by enter the commands below one after the other:
+**make -f genconfig.mk**
+**make -f dmd.mk**
+- If there is no error return, check if **initconfig** and **DMDPRIME20** are succesfully created in *src*
+- Obtain the paths to these executable files to submit jobs.
 
 ## Getting Started   
 **/example/**: this directory contains an example of required file and subdirectories for a simulation using DMD/PRIME20.
@@ -49,22 +53,33 @@ DMD simulation using PRIME20 starts with building initial configuration. The cur
 
 $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro's number * Concentration}})^\frac{1}{3}*10^9 $$
 
+where Concentration is in mM and boxlength is in Angstrom
+
 ### Submit a job:
 Steps to submit a simulation is as follow. These steps are after the package is succesfully installed on your device and *the path to executable file is obtained*.
-1. Make a directory to run simulation or copy over the /'example/' directory, rename and then delete all files within subdirectories and *nohup.out*. If making new directory, follow the next steps. 
+1. Make a directory to run simulation or copy over the /'example/' directory, rename and then delete all files within subdirectories and *.out*. If making new directory, follow the next steps. 
 2. In this directory, make an 'input.txt' file following the example. You can copy over this file and change the parameters correspoding to your system.
 3. In this directory, make 5 empty subdirectories at listed above if running a new simulation, or copy over these subdirectories with all data in them for a continuing simulation. 
-4. Submit job. It is not recommended to run DMD/PRIME20 on a login node as a job can take days to finish. A simple bash script (.sh) to submit job is attached in '/example/'. The format is as follow.  
-> #!/bin/bash
-> 
-> /**path_to_executive_file_DMDPRIME20**/DMDPRIME20
+4. Submit job. It is not recommended to run DMD/PRIME20 on a login node as a job can take days to finish. A simple tcsh script (.csh) to submit job is attached in '/example/'. There are three steps to run a new simulations:
 
-The bold line will need to be changed to the path to your executable file 'DMDPRIME20'. For example: If you save the package to '/home/user/Serial-DMD-PRIME20' then the path to executable file will be '/home/user/Serial-DMD-PRIME20/src/'. Your submission script will be:
-> #!/bin/bash
-> 
-> **/home/user/Serial-DMD-PRIME20/src**/DMDPRIME20
+4.1 Generate initial configuration. This step is done in serial. Replace the bold line by the real path to *initconfig* on your system.
+> /**path_to_executive_file_initconfig**/initconfig
 
-At the beginning of DMD simulation, the system will be heated to a high temperature and then be slowly annealed to the desired temperature. This step is to make sure that all peptide chains are denatured and that the DMD simulation starts with all random coils. The numbers of collisions are defined by users. Larger system will need longer simulation times. It is recommended to start the simulation with no longer than 100 billion collisions. If the system has not aggregated after 100 billion collision, the simulations can be extended.
+For example: If you save the package to '/home/user/Parallel-DMD-PRIME20' then the path to executable file will be '/home/user/Parallel-DMD-PRIME20/src/'. Your submission script will look like:
+
+> **/home/user/Parallel-DMD-PRIME20/src**/initconfig
+
+Before a DMD simulation, the system will be heated to a high temperature and then be slowly annealed to the desired temperature. This step is to make sure that all peptide chains are denatured and that the DMD simulation starts with all random coils. The submission command for annealing process is as follow.
+> foreach i (`seq 1 number_of_temperatures_use_for_annealing`)
+> mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
+> end
+If using default temperature, *number_of_temperatures_use_for_annealing = 9*
+If using user-defined temperature:
+> $$ number_of_temperatures_use_for_annealing = \frac{\text{Starting temperature - Ending temperature}{\text{decrement}} + 1 $$
+
+
+
+The numbers of collisions are defined by users. Larger system will need longer simulation times. It is recommended to start the simulation with no longer than 100 billion collisions. If the system has not aggregated after 100 billion collision, the simulations can be extended.
 
 ## Developing Status
 The software is being developed and updated. An result analysis package is being developed.
