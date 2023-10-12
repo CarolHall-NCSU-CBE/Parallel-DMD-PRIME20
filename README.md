@@ -46,6 +46,7 @@ Requirements to start a simulation including:
 >Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories. 
 ## Running simulation
 DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides. Concentration in DMD-PRIME20 is defined by numbers of peptide chains and the simulation box length which is found as:
+
 $$ boxl = {{Total number of peptide chains*1000} \over {Avogadro^' s number*Concentration}}^(1/3)*10^9} $$
 ### Submit a job:
 Steps to submit a simulation is as follow. These steps are after the package is succesfully installed on your device and *the path to executable file is obtained*.
