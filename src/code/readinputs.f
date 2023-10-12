@@ -1,10 +1,15 @@
+! =========================================================================
+! This subroutine read inputs from text file
+! This is a serial job
+! Last modified on 10/12/2023 by Van Nguyen
+! =========================================================================
 #include "readflags.f90"
 subroutine readinputs
 	use inputreadin
 	use global
 	implicit none
-	real annealtemp(9),  d1d2d3
-	integer i, annealcoll(9),espos, annealcheck, error
+	real d1d2d3
+	integer i,espos, error, j
 	character(len=50) :: filename,shortline
 	character(len=175) :: skipline, readline
 	logical, external :: readflags
@@ -101,15 +106,38 @@ subroutine readinputs
 		espos = index(readline,'=')
 		shortline = adjustl(readline((espos+1):len(readline)))
 		read(shortline,*) annealcheck
-		if (annealcheck == 0) then
-			annealingsteps = 9
-			allocate(temps(annealingsteps))
-			temps= (/0.50,0.45,0.40,0.35,0.30,0.28,0.26,0.24,0.22/)	
-			allocate(collset(annealingsteps))
-			collset(1:5) = 100000000
-			collset(6:7) = 150000000
-			collset(8) = 200000000
-			collset(9) = 250000000
+		if (annealcheck == 1) then
+			write(6,'(A)') 'Annealing process is run with temperature range defined by user.'
+			read(file_input,'(A)',iostat = error) readline
+			if ((error == 0) .and. (len(trim(readline)) .ne.0)) then
+				espos = index(readline,'=')
+				shortline = adjustl(readline((espos+1):len(readline)))
+				read(shortline,*) maxannealing
+				write(6,'(A,f7.1)') 'Starting of annealing temperature in Kelvin: ',  maxannealing
+			endif
+			read(file_input,'(A)',iostat = error) readline
+			if ((error == 0) .and. (len(trim(readline)) .ne.0)) then
+				espos = index(readline,'=')
+				shortline = adjustl(readline((espos+1):len(readline)))
+				read(shortline,*) minannealing
+				write(6,'(A,f7.1)') 'Ending of annealing temperture in Kelvin: ',  minannealing
+			endif
+			read(file_input,'(A)',iostat = error) readline
+			if ((error == 0) .and. (len(trim(readline)) .ne.0)) then
+				espos = index(readline,'=')
+				shortline = adjustl(readline((espos+1):len(readline)))
+				read(shortline,*) incrannealing
+				write(6,'(A,f7.1)') 'Temperature increment for annealing in Kelvin: ',  incrannealing
+			endif
+			read(file_input,'(A)',iostat = error) readline
+			if ((error == 0) .and. (len(trim(readline)) .ne.0)) then
+				espos = index(readline,'=')
+				shortline = adjustl(readline((espos+1):len(readline)))
+				read(shortline,*) annealcoll
+				write(6,'(A,i17)') 'Annealing collision: ',  annealcoll
+			endif
+		elseif (annealcheck == 0) then
+			write(6,'(A)') 'Annealing process is run with default temperature from 1028K to 388K.'
 		endif
 		read(file_input,'(A)',iostat = error) readline
 		if ((error == 0).and. (len(trim(readline)) .ne.0)) then

@@ -1,7 +1,9 @@
-	subroutine repuls_del_b(i,j)
+! ====================================================================================
+! Delete nbors of the just broken-up hydrogen-bonded pair from the extrap_repulse list 
+! Last modified on 10/12/2023 by Van Nguyen
+! ====================================================================================
 
-!   	delete nbors of the just broken-up hydrogen-bonded pair from
-!	the extrap_repulse list 
+	subroutine repuls_del_b(i,j)
 
 #include "def.h"
 

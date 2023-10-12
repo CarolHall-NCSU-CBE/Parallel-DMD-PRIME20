@@ -1,15 +1,16 @@
-!	subroutine eventredo takes (m,i) or (m,j) pair from main 
-!	program and calculates the collision time for that pair. 
-!	i and j were just involved in the collision. 
-!	"i" appears on "m"'s neighbor list but "m" is not on "i"'s list.
-!	"j" appears on "m"'s neighbor list but "m" is not on "j"'s list.
-!	(due of the effort to avoid redundancy on the neighbor lists,
-!	neighbor lists only include particles with higher numbers.
-!	this subroutine is for neighbors with lower numbers.)
-!
-!	the point of this subr is to find tim, nptnr, and coltype for 
-!	each nop
-!	j is always > i, but aa(j) not necessarily > aa(j)
+! ============================================================================
+!Subroutine eventredo takes (m,i) or (m,j) pair from main program and 
+!calculates the collision time for that pair. 
+!i and j were just involved in the collision. 
+!"i" appears on "m"'s neighbor list but "m" is not on "i"'s list.
+!"j" appears on "m"'s neighbor list but "m" is not on "j"'s list.
+!(due of the effort to avoid redundancy on the neighbor lists,neighbor lists 
+!only include particles with higher numbers. This subroutine is for neighbors 
+!with lower numbers.)
+!The point of this subr is to find tim, nptnr, and coltype for each nop
+!j is always > i, but aa(j) not necessarily > aa(j)
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
 
 	subroutine eventredo_up(i,j) 
 
@@ -25,6 +26,7 @@
 
 	tij=1000000000.d0
 	evcode=ev_code(j,i)
+	
 
 	if (evcode.le.3) then
 		call core(i,j,evcode,tij,type)
@@ -45,7 +47,8 @@
 	   	write(fileout,*)'i=',i
 	   	write(fileout,*)'j=',j
 	endif
-
+	!write(526,*) i, j, evcode
+	!write(526,*) tij
 !	at this point, have found event time for a given i,j pair.  
 !	test to see if it's the soonest event i will face; 
 !	if so, save that time, partner, and event type.
@@ -59,16 +62,16 @@
 #ifdef debugging
 
 	if ((tij.lt.0.0) .and. (abs(tij) .gt. 1.0e-10)) then
-		write(fileout,*)'in eventredo_up'
-	   	write(fileout,*)'coll=',coll
-	   	write(fileout,*)'boxl=',boxl
-	   	write(fileout,*)'factor=',ev_param(1,evcode)
-	   	write(fileout,*)'i =',i
-	   	write(fileout,*)'j =',j
-	   	write(fileout,*)'tij=',tij
-	   	write(fileout,*)'coltype=',type
-	   	write(fileout,*)'ev_code=',evcode
-	   	write(fileout,*)'stop in eventredo_up, tij is less than 0'
+		write(6,*)'in eventredo_up'
+	   	write(6,*)'coll=',coll
+	   	write(6,*)'boxl=',boxl
+	   	write(6,*)'factor=',ev_param(1,evcode)
+	   	write(6,*)'i =',i
+	   	write(6,*)'j =',j
+	   	write(6,*)'tij=',tij
+	   	write(6,*)'coltype=',type
+	   	write(6,*)'ev_code=',evcode
+	   	write(6,*)'stop in eventredo_up, tij is less than 0'
 	   	call exit(-1)
 	endif	
 

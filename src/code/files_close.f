@@ -1,3 +1,8 @@
+! =========================================================================
+! This subroutine closes all files at the end of simulation
+! This is a serial job
+! Last modified on 10/12/2023 by Van Nguyen
+! =========================================================================
 	subroutine fileclose
 
 #include "def.h"
@@ -26,6 +31,16 @@
 	close(runrca)
 	close(prelasvel)
 	close(fileout)
+
+! MPI testing
+	!close(527)
+	!close(517)
+	!close(518)
+	!close(519)
+	!close(520)
+	!close(521)
+	!close(522)
+	!close(523)
 
 	
 !VN: Files that are stored in source code package:

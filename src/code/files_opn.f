@@ -1,4 +1,10 @@
-! This subroutine is to open new files to record results or to read parameters from existing files for simulation step
+! ============================================================================
+! This subroutine is to open new files to record results or to read parameters 
+!from existing files for simulation step
+! This is a serial job
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
+
 	subroutine file_opener
 
 #include "def.h"
@@ -78,21 +84,19 @@ call chdir(rundir)
 	outname = outname((dotpos+1):len(outname))
 	if (newold == 0) then
 	if (stepcount .le. annealingsteps) then 
-		open(unit=fileout,file='outputs/out0'//outname,status='unknown')
+		!open(unit=fileout,file='outputs/out0'//outname,status='unknown')
 	else
 		simdigit = char((i-annealingsteps+1)/1000+izero)//char(mod((i-annealingsteps+1),1000)/100+izero)//char(mod((i-annealingsteps+1),100)/10+izero)//char(mod((i-annealingsteps+1),10)+izero)
-		open(unit=fileout,file='outputs/out0'//outname//'_'//simdigit,status='unknown')
+		!open(unit=fileout,file='outputs/out0'//outname//'_'//simdigit,status='unknown')
 	endif
 	else
 		simdigit = char((i-annealingsteps+1)/1000+izero)//char(mod((i-annealingsteps+1),1000)/100+izero)//char(mod((i-annealingsteps+1),100)/10+izero)//char(mod((i-annealingsteps+1),10)+izero)
-		open(unit=fileout,file='outputs/out0'//outname//'_'//simdigit,status='unknown')
+		!open(unit=fileout,file='outputs/out0'//outname//'_'//simdigit,status='unknown')
 	endif	
-	
-
+		
 
 call chdir(mydir)
 ! VN: Files are saved in code package:
-!     	accessing ideal helix as starting configuration (eight 16mer)
       	open(unit=parabundles,file='parameters/bundles.inp',status='unknown')
 	open(unit=pararn,file='parameters/rn.data',status='unknown')
 	open(unit=pararc,file='parameters/rc.data',status='unknown')
@@ -104,15 +108,6 @@ call chdir(mydir)
       	open(unit=simwellha55a,file='parameters/beadwell_ha55a.data',status='unknown')
 	open(unit=simsqz,file='parameters/sqz6to10.data',status='old')
 	open(unit=simmass,file='parameters/mass.data',status='unknown')
-
-
-
-
-
-
-
-
-	
 
 	return
 

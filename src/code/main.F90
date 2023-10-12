@@ -1,9 +1,6 @@
-!1234567890123456789012345678901234567890123456789012345678901234567890123
-!        10        20        30        40        50        60        70
-!	discontinuous molecular dynamics main program
- 
-!     	variables defined in the makefile: 
-
+! ============================================================================
+!   Discontinuous molecular dynamics main program
+!  Variables defined in the makefile: 
 !     	nop      number of particles
 !     	ncoll    number of collisions desired
 !     	setemp   simulation temperature 
@@ -12,10 +9,7 @@
 !     	nphipsi  number of times to take phi-psi data
 !     	pwl      well diameter for side chain beads = pwl*(bead diameter)
 !     	numsheets  =3 for preset ideal fibril w/ 3 sheets of 4 chains each
-
-
-!     	flags defined in the makefile:
-
+! Flags defined in the makefile:
 !     	canon    flag to implement ghost collisions
 !     	no_h     quick way to set all side chains to polar regardless
 !      	  of hp.inp file
@@ -36,10 +30,7 @@
 !               based on wolynes method (jcp 110 (23) 1999 pp13096-29)
 !               and is used to make h-bonds more stable
 !     	write_phipsi  to write out phi and psi bond angle information
-
-
-!     	parameters set in header:
-
+! Parameters set in header:
 !     	dnc = c_alpha_i to n_i (covalent bond)
 !     	dcc = c_alpha_i to c_i (covalent bond)
 !     	dcn = c_i to n_i+1, peptide bond (covalent bond)
@@ -47,17 +38,18 @@
 !     	dtie2 = c_i to c_alpha_i+1 and c_i to n_i (pseudobond)
 !     	dcaca = c_alpha_i to c_alpha_i+1 (pseudobond)
 !     	del:  bond tolerance; bond collision occurs at (1-del)*bdln,
-!            bond extension occurs at (1+del)*bdln
-!     	n_b_hydro = required minimum number of residues between 
-!                  hydrophobic interactions
+!       	bond extension occurs at (1+del)*bdln
+!     	n_b_hydro = required minimum number of residues between hydrophobic interactions
 !     	n_b_hbond = required minimum number of residues between h bonds
 !     	nfsteps: number of false steps to take between actual position 
 !               updates and checks for neighbor list updates
 !     	also used at very end of code to avoid end configuration overlaps
-!     	sqz#     11 different local overlaps defined in make_code to 
+!     	sqz#    11 different local overlaps defined in make_code to 
 !               allow near neighbors to overlap resulting in appropriate
 !               allowed phi-psi regions for residues  
-!               based on wolynes method (jcp 110 (23) 1999 pp13096-29)
+!               based on wolynes method (jcp 110 (23) 1999 pp13096-29)		  
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
    
 #include "def.h"
 #include "header.f"
@@ -76,7 +68,8 @@
       	real*8 tgho,xr,rating,avegtime,ered,tred,sumvel,e_int
       	real*8 old_tfalse,w,v1,v2,v3,r,fact,ran_non,ran_brk,tstar
       	real*8 rxij,ryij,rzij,vxij,vyij,vzij,bij,vijsq,rijsq,diff,rg_avg,e2e_avg
-	integer totalsteps
+	integer totalsteps, testmaster
+	real*8 start, finish
 
 #ifdef equil
       	real per_hb,per_hh
@@ -122,7 +115,7 @@
 ! as there are a number of places that this streamlines the code, and it will hopefully prevent some of the 
 ! tediousness that I had in adapting Dave's non-modular 2-species code to a modular 3-species code.
 
-		!VN: get paths for file openning and creating:
+!VN: get paths for file openning and creating:
 	call getcwd(rundir)
 	call get_command_argument(0,path)
 	realpath = scan (path,'/',back)
@@ -137,29 +130,15 @@
 	else
 		totalsteps = numsim
 	endif	
-	do stepcount = 1,totalsteps
-		if (newold == 0) then
-			if (stepcount .le. annealingsteps) then
-      				setemp = temps(stepcount)
-      				setemp =  setemp*12.d0
-      				ncoll = collset(stepcount)
-			else
-				setemp = simtemp
-				setemp =  setemp*12.d0
-				ncoll = simcoll
-			endif
-			if (stepcount == 1) then		
-				call genconfig()
-			endif
-		else
-			setemp = simtemp
-			setemp =  setemp*12.d0
-			ncoll = simcoll
-		endif
+	read(5,*) setemp
+      	setemp =  setemp*12.d0
+      	read(5,*) ncoll
+	close(5)
+
       	filename = 'results/run'//'1000.lastvel'
       	inquire(file=filename, exist = success)
       	call file_opener()
-      	write(fileout,*)'number of collisions requested', ncoll
+      	write(6,*)'number of collisions requested', ncoll
 
 #ifdef equil
       	ncoll_max=ncoll*4
@@ -171,21 +150,21 @@
       	enddo
 #endif
         numevents = 0
-	    t_fact = 0.00005D0
+	t_fact = 0.00005D0
       	n_forced = 150.0d0
       	n_interval = 75000/8
       	interval = t_fact/dsqrt(setemp)
       	interval_max = n_forced*interval
       	sortsize = interval_max/dble(numbin)
-      	write(fileout,*) 't_fact=',t_fact
-      	write(fileout,*) 'n_forced=',n_forced
-      	write(fileout,*) 'n_interval=',n_interval
+      	write(6,*) 't_fact=',t_fact
+      	write(6,*) 'n_forced=',n_forced
+      	write(6,*) 'n_interval=',n_interval
 
 #ifdef canon
-      	write(fileout,*)
+      	write(6,*)
       	avegtime=0.00005d0/dsqrt(setemp)
-      	write(fileout,*)'avegtime is ',avegtime
-      	write(fileout,*)
+      	write(6,*)'avegtime is ',avegtime
+      	write(6,*)
 #endif
 
 !     	to have different random numbers each time, use iflag = time()
@@ -195,23 +174,23 @@
       	iflag =ifc_time(1)
 #else
       	iflag =time()
+!     	to have the same random numbers each time, use iflag = constant
+!     	iflag = 1058472402
+
 #endif
 
-!     	to have the same random numbers each time, use iflag = constant
-     	iflag = 1058472402
-      	write(fileout,*)'iflag=',iflag
+      	write(6,*)'iflag=',iflag
       	xr=drandm(iflag)
       	call srand(iflag)
 !     	each successive drandm call should be of the form drandm(0)
-      	!call resultsfile_opener
       	writeprop_count = 0
       	call inputinfo()
       	call make_code() 
 
 #ifdef canon
-      	write(fileout,*)'implementing canon code'
+      	write(6,*)'implementing canon code'
 #else
-      	write(fileout,*)'leave out canon code to check for energy conservation'
+      	write(6,*)'leave out canon code to check for energy conservation'
 #endif
 
 #ifdef write_phipsi
@@ -265,16 +244,15 @@
 
 65   	format(f24.16,i4,i5,i5)
 66   	format(f24.16,i6,i5,i5)
-      	write(fileout,*)
+      	write(6,*)
 
 #ifdef runr
-      	!open(unit=7,file='results/run'//fname_digits_pre//'.bptnr',status='old',form='unformatted')
 
       	do while (.true.)
         	read(prepartner,end=121) coll,bptnr
       	end do   
 121   	continue
-
+	
 !LR: Changed a hardcoded 2-species variable reference to a noptotal variable
       	do k = 1, (noptotal)-1
 !LR: Changed a hardcoded 2-species variable reference to a noptotal variable
@@ -290,69 +268,70 @@
                		diff=rijsq-welldia_sq(identity(k),identity(k_j))
                		if (diff .lt. 0.d0) then
                			if (k .le. nop1) then
-                  				kk = k-((chnnum(k)-1)*numbeads1)
+                  			kk = k-((chnnum(k)-1)*numbeads1)
                   		!LR: Changed an open else statement to a constrained else-if statement, since only species 1 and species 2 can hydrogen bond.
                			elseif(k .le. nop1+nop2) then
-                  				kk = k-nop1-((chnnum(k)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
+                  			kk = k-nop1-((chnnum(k)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
                			endif
                			if (k_j .le. nop1) then
-                  				kk_j = k_j-((chnnum(k_j)-1)*numbeads1)
+                  			kk_j = k_j-((chnnum(k_j)-1)*numbeads1)
                			!LR: Changed an open else statement to a constrained else-if statement, since only species 1 and species 2 can hydrogen bond.
                			elseif (k_j .le. nop1+nop2) then
-                  				kk_j = k_j-nop1-((chnnum(k_j)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
+                  			kk_j = k_j-nop1-((chnnum(k_j)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
                			endif
                   			if ((k .le. nop1) .and. (k_j .le. nop1)) then
                   				if ((kk.ne.chnln1+1).and.(kk.ne.3*chnln1).and.(kk_j.ne.chnln1+1).and.(kk_j.ne.3*chnln1))then
                      				if (identity(k).eq.1) then
-                        					call repuls_add(k,k_j)
+                        				call repuls_add(k,k_j)
                      				else
-                        					call repuls_add(k_j,k)
+                        				call repuls_add(k_j,k)
                      				end if
                   				endif
                   			elseif ((k .le. nop1) .and. (k_j .gt. nop1)) then
                   				if ((kk.ne.chnln1+1).and.(kk.ne.3*chnln1).and.(kk_j.ne.numbeads1+chnln2+1).and.(kk_j.ne.numbeads1+3*chnln2))then
                      				if (identity(k).eq.1) then
-                        					call repuls_add(k,k_j)
+                        				call repuls_add(k,k_j)
                      				else
-                        					call repuls_add(k_j,k)
+                        				call repuls_add(k_j,k)
                      				end if
                   				endif
                   			elseif ((k .gt. nop1) .and. (k_j .gt. nop1)) then
                   				if ((kk.ne.numbeads1+chnln2+1).and.(kk.ne.numbeads1+3*chnln2).and.(kk_j.ne.numbeads1+chnln2+1).and.(kk_j.ne.numbeads1+3*chnln2))then
                      				if (identity(k).eq.1) then
-                        					call repuls_add(k,k_j)
+                        				call repuls_add(k,k_j)
                      				else
-                        					call repuls_add(k_j,k)
+                        				call repuls_add(k_j,k)
                      				end if
-                  				endif
                   			endif
+                  		endif
                		endif
             		endif
             		if (k_j .eq. bptnr(k)) then
                		if (k .le. nop1) then
-                  			kk = k-((chnnum(k)-1)*numbeads1)
+                  		kk = k-((chnnum(k)-1)*numbeads1)
                		else
-                  			kk = k-nop1-((chnnum(k)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
+                  		kk = k-nop1-((chnnum(k)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
                		endif
                		if (k_j .le. nop1) then
-                  			kk_j = k_j-((chnnum(k_j)-1)*numbeads1)
+                  		kk_j = k_j-((chnnum(k_j)-1)*numbeads1)
                		else
-                  			kk_j = k_j-nop1-((chnnum(k_j)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
+                  		kk_j = k_j-nop1-((chnnum(k_j)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
                		endif
                		if (identity(k) == 1) then
-                  			identity(k)=5
-                  			identity(k_j)=8
+                  		identity(k)=5
+                  		identity(k_j)=8
                		else
-                  			identity(k)=8
-                  			identity(k_j)=5
+                  		identity(k)=8
+                  		identity(k_j)=5
                		endif
             		endif
          	enddo
       	enddo
+	
 
 #else
-      	write(fileout,*)' '
-      	write(fileout,*)'reassigning for helical h-bonds'
+      	write(6,*)' '
+      	write(6,*)'reassigning for helical h-bonds'
       	do m=1,nop/numbeads
          	do k=(m-1)*numbeads+chnln+5,(m-1)*numbeads+2*chnln
             		k_j=k+chnln-4
@@ -377,10 +356,10 @@
       	call checkover(over)
 
       	if (over) then
-         	write(fileout,*)'found overlap/underlap in initial configuration'
+         	write(6,*)'found overlap/underlap in initial configuration'
 !        	call exit(-1)
       	else
-         	write(fileout,*)'no overlap/underlap in initial configuration'
+         	write(6,*)'no overlap/underlap in initial configuration'
       	endif
       
 !     	calculate energy with subroutine
@@ -395,14 +374,14 @@
             
       	call radgyr(rg_avg)
       	call end_to_end(e2e_avg)
-      	write(fileout,*)'the initial total energy of system is ',ered
-      	write(fileout,*)'the initial internal energy of system is ',e_int
-      	write(fileout,*)'the initial kinetic energy of system is ',ered-e_int
-      	write(fileout,*)'the initial temperature of system is ',tred
-      	write(fileout,*)' '
-      	write(fileout,*)'the initial number of alpha-helical hb',hb_alpha
-      	write(fileout,*)'the initial number of hydrogen bonds',hb_ii+hb_ij
-      	write(fileout,*)'the initial number of hydrophobic interactions',ehh_ii+ehh_ij
+      	write(6,*)'the initial total energy of system is ',ered
+      	write(6,*)'the initial internal energy of system is ',e_int
+      	write(6,*)'the initial kinetic energy of system is ',ered-e_int
+      	write(6,*)'the initial temperature of system is ',tred
+      	write(6,*)' '
+      	write(6,*)'the initial number of alpha-helical hb',hb_alpha
+      	write(6,*)'the initial number of hydrogen bonds',hb_ii+hb_ij
+      	write(6,*)'the initial number of hydrophobic interactions',ehh_ii+ehh_ij
       	call flush(6)
       	write(rune,22223) 0,(t+tfalse)*dsqrt(setemp)/(sigma(1)*boxl_orig),ered,tred,hb_alpha,hb_ii,hb_ij,ehh_ii,ehh_ij,rg_avg,e2e_avg
       	call flush(rune)
@@ -418,8 +397,8 @@
 !     	set up neighbor list and pointer with subroutine 
       	call nbor_setup()
       	num_cell=int(boxl/(sig_max_all*rl_const)*n_wrap)+2*n_wrap
-      	write(fileout,*)
-      	write(fileout,*)'at start, number of cells =',num_cell
+      	write(6,*)
+      	write(6,*)'at start, number of cells =',num_cell
       	allocate(cell(num_cell**3+1))
       	allocate(wrap_map(num_cell**3))
       	width = boxl/dble(num_cell-2*n_wrap)
@@ -432,8 +411,8 @@
          	nbrsum=nbrsum+na_npt(k)
       	enddo
       	!LR: Changed a hardcoded 2-species variable reference to a noptotal variable
-      	write(fileout,*)'at start, avg number of nbors per particle=',dble(nbrsum)/dble(noptotal)
-      	write(fileout,*)
+      	write(6,*)'at start, avg number of nbors per particle=',dble(nbrsum)/dble(noptotal)
+      	write(6,*)
       
 #ifdef canon
       	tgho=0.d0
@@ -441,6 +420,7 @@
       	do while ((tgho .lt. 1.d-18) .or. (tgho .eq. 1.d0))
          	tgho = drandm(0)
       	enddo
+	 
 !LR: Changed a hardcoded 2-species variable reference to a noptotal variable
       	tim((noptotal)+1)=-1.d0*dlog(tgho)*avegtime*.0000001
 #else 
@@ -453,7 +433,6 @@
       	tim((noptotal)+3)=3.3/(dsqrt(setemp))+5
       	call events() 
       	call check_nc_int(boundbad, unboundbad)
-
 #ifdef debugging
       	if ((boundbad .ne. pre_boundbad) .or. (unboundbad .ne. pre_unboundbad)) then
          	print*, 'boundbad and unboundbad',boundbad,unboundbad
@@ -462,12 +441,16 @@
       	end if
 #endif
 	call MPI_BCAST(noptotal,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST noptotal',noptotal
+	call MPI_BCAST(nop1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(nop2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(chnln1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(chnln2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(numbeads1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(numbeads2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+
 	call MPI_BCAST(chnnum,noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST chnnum'
-	!call MPI_BCAST(identity,noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)  
-	call MPI_BCAST(bm,noptotal,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST bm'
+	!call MPI_BCAST(identity,noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr) 
+	call MPI_BCAST(bm(1:noptotal),noptotal,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(ev_param,3*50,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	!call MPI_BCAST(ev_code,noptotal*noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)	
 	call MPI_BCAST(setemp,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
@@ -476,56 +459,47 @@
 	call MPI_BCAST(ep_sqrt,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(ep,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(welldia_sq,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(fside1,chnln1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(fside2,chnln2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST fside'
-	call MPI_BCAST(hp,numbeads1+numbeads2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST hp'
+	call MPI_BCAST(fside1(1:chnln1),chnln1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(fside2(1:chnln2),chnln2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(hp(1:numbeads1+numbeads2),numbeads1+numbeads2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(sqz610,5*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bdln,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bl_rc,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bl_rn,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_bdln,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_blrc,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_blrn,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	write(fileout,*) 'complete sending BCAST bondlength'
-	
+	call MPI_BCAST(bdln(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bl_rc(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bl_rn(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_bdln(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_blrc(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_blrn(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shlddia_sq,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shder_dist1,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shder_dist2,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shder_dist3,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shder_dist4,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(epsilon,28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-
 	
 !**********************************************************************
 !                         main loop begins
 !**********************************************************************
-    
-      	delta_nv = dtime(tarray_nv)
+	call cpu_time(start)
       	coll = 0
-		n = 0
+	n = 0
 
-		do i =1,binsize
-        do j =1,cols+1
-              temp_ans(i,j) = 0.d0
-	    enddo
+	do i =1,binsize
+        	do j =1,cols+1
+             		temp_ans(i,j) = 0.d0
+	    	enddo
         enddo 		 
 		
-		old_tfalse = tfalse
+	old_tfalse = tfalse
 
 #ifdef equil
 6    	do while ((coll .le. ncoll) .and. (ncoll .le. ncoll_max))
 #else
 777    	do while (coll .le. ncoll)
 #endif
-
+	
         temp_numsent = 0
-		count_round = 0
+	count_round = 0
 		
-	!coll = coll + 1
-
-	!xpulse_del=.false.
 !    	finding first collision without tree:
       	old_tfalse = tfalse
 
@@ -535,15 +509,15 @@
 
      	i = bin(nbin)
       	tfalse=tim(i)
-		k = tlinks(i)
+	k = tlinks(i)
 
 !Yiming: insertion sorting in the 1st bin
-	    !numevents = 1
+
 		numevents_new = 0
 		numevents_old = 0
 		numsent = 0
 		numsent_curr = 0
-        do kkk=1,numevents
+        	do kkk=1,numevents
 			sort_bead_list(kkk) = 0
 			sort_nptnr_list(kkk)= 0
 			sort_time_list(kkk) = 0.d0
@@ -559,53 +533,48 @@
 			sort_bead_list(numevents) = k 
 			sort_nptnr_list(numevents) = nptnr(k)			
 			sort_time_list(numevents) = tim(k)
-     		k = tlinks(k)
-    	end do
-
-			do i = 2, numevents
-				x = sort_time_list(i)
-				y = sort_bead_list(i)
-	            z = sort_nptnr_list(i)
-				
-				j = i - 1
-				do while (j .ge. 1)
-					if (sort_time_list(j).le. x) exit
-					sort_time_list(j+1) = sort_time_list(j)
-					sort_bead_list(j+1) = sort_bead_list(j)
-					sort_nptnr_list(j+1) = sort_nptnr_list(j)
-					j = j - 1
-				end do
-					sort_time_list(j+1) = x
-					sort_bead_list(j+1) = y
-					sort_nptnr_list(j+1) = z
-			end do 
+     			k = tlinks(k)
+    		end do
+		do i = 2, numevents
+			x = sort_time_list(i)
+			y = sort_bead_list(i)
+	            	z = sort_nptnr_list(i)
+			j = i - 1
+			do while (j .ge. 1)
+				if (sort_time_list(j).le. x) exit
+				sort_time_list(j+1) = sort_time_list(j)
+				sort_bead_list(j+1) = sort_bead_list(j)
+				sort_nptnr_list(j+1) = sort_nptnr_list(j)
+				j = j - 1
+			end do
+			sort_time_list(j+1) = x
+			sort_bead_list(j+1) = y
+			sort_nptnr_list(j+1) = z
+		end do 
 
 #ifdef debugging    
 !LR: Changed a hardcoded 2-species variable reference to a noptotal variable     
 	if (i .gt. (noptotal)+3) then
-	    	write(fileout,*) 'greater than (noptotal)+3', coll, i
+	    	write(6,*) 'greater than (noptotal)+3', coll, i
 	    	call exit(-1)
 	end if
 #endif
 
      	if (tfalse .lt. old_tfalse-ltstep) then
 75         	format('event ',i10,' btwn ',i4,' and ', i4 ,' (event type ',i2,') is',f19.16, ' less then', f19.16)
-            	write(fileout,75) coll,i,nptnr(i),coltype(i), tfalse, old_tfalse
+            	write(6,75) coll,i,nptnr(i),coltype(i), tfalse, old_tfalse
     	endif
 
 678        count_round = count_round + 1
            dynamic_numevents = numevents - (count_round-1)*(numprocs-1)
+
 !   Yiming: send the colliding pair to each of the numprocs-1 of slaves
-	do k=1,min(numprocs-1,dynamic_numevents) 
+	do k=1,min(numprocs-1,dynamic_numevents)
 		i = sort_bead_list(k+(count_round-1)*(numprocs-1)) 
-	!	write(22,*) 'line 331', numevents,k,sort_bead_list(k),sort_time_list(k),tim(i)!,nptnr(sort_bead_list(k))	
-	!	write(fileout,*) 'line 331 2nd', coll,k+1,sort_bead_list(k+1),sort_time_list(k+1),tim(sort_bead_list(k+1)),nptnr(sort_bead_list(k+1))
 		if (i .le. (noptotal)) then
 			j = nptnr(i) 
-			! write(22,*) coll,k,i,j,sv(1,i),sv(1,j),tfalse
 			buffer(1) = dble(i)
 			buffer(2) = dble(j)
-		  !tfalse = sort_time_list(k) !write(fileout,*)'before coll: ',k,i,j,sv(1,i),sv(1,j),tfalse,buffer(2)
 			buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))	! same as tim(i)
 			buffer(4) = sv(1,i)
 			buffer(5) = sv(2,i)
@@ -620,68 +589,53 @@
 			buffer(14) = sv(5,j)
 			buffer(15) = sv(6,j)
 			buffer(16) = dble(coltype(i))
-            buffer(17) = dble(ev_code(i,j))
+            		buffer(17) = dble(ev_code(i,j))
 			buffer(18) = dble(identity(i))
 			buffer(19) = dble(identity(j))
 			buffer(20) = dble(bptnr(i))
 			buffer(21) = dble(bptnr(j))
 			buffer(22) = dble(extra_repuls(i,1))
 			buffer(23) = dble(extra_repuls(i,2))
-            buffer(24) = dble(extra_repuls(i,3))
+            		buffer(24) = dble(extra_repuls(i,3))
 			buffer(25) = dble(extra_repuls(i,4))
 			buffer(26) = dble(extra_repuls(j,1))
 			buffer(27) = dble(extra_repuls(j,2))
-            buffer(28) = dble(extra_repuls(j,3))
+            		buffer(28) = dble(extra_repuls(j,3))
 			buffer(29) = dble(extra_repuls(j,4))
-            !if (bptnr(i).ne.0) buffer(30) = dble(identity(bptnr(i)))
-            !if (bptnr(j).ne.0) buffer(31) = dble(identity(bptnr(j)))
-			if (extra_repuls(i,4).ne.0)  buffer(30) = dble(identity(extra_repuls(i,4)))
-			if (extra_repuls(j,4).ne.0)  buffer(31) = dble(identity(extra_repuls(j,4)))	
-			
-       else if (i .eq. (noptotal+1)) then
+      			if (extra_repuls(i,4).ne.0)  buffer(30) = dble(identity(extra_repuls(i,4)))
+			if (extra_repuls(j,4).ne.0)  buffer(31) = dble(identity(extra_repuls(j,4)))		
+       		else if (i .eq. (noptotal+1)) then
 			buffer(1) = dble(i)
-			!tfalse = sort_time_list(k) 	!write(fileout,*)'before coll: ',k,i,sv(1,i),tfalse,buffer(2)
-            buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
-		!	write(fileout,*) 'line 380',i
-       else if (i .eq. (noptotal+2)) then
+	            	buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
+       		else if (i .eq. (noptotal+2)) then
 			buffer(1) = dble(i)
-			!tfalse = sort_time_list(k)
-            buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
-       else if (i .eq. (noptotal+3)) then
+            		buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
+       		else if (i .eq. (noptotal+3)) then
 			buffer(1) = dble(i)
-			!tfalse = sort_time_list(k)
-            buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
-       endif	   
-
-	    call MPI_SEND(buffer,cols,MPI_DOUBLE_PRECISION,k,numsent+1,MPI_COMM_WORLD,ierr)
-		!do kk = 1,cols
-		!    buffer(kk) = 0.0
-		!enddo
+            		buffer(3) = sort_time_list(k+(count_round-1)*(numprocs-1))
+       		endif	   
+	    	call MPI_SEND(buffer,cols,MPI_DOUBLE_PRECISION,k,numsent+1,MPI_COMM_WORLD,ierr)
    		numsent = numsent + 1
 	end do
 
 8888    call MPI_RECV(ans,cols,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,status,ierr)
         sender = status(MPI_SOURCE)  ! identity of one slave node
-		numsent_curr = status(MPI_TAG)    
-           do k =1,cols
+	numsent_curr = status(MPI_TAG)    
+        do k =1,cols
               temp_ans(numsent_curr,k) = ans(k)
-		   enddo
-		     temp_ans(numsent_curr,cols+1) = sender
-   		!write(fileout,*) 'line403', sender,numsent_curr,temp_ans(numsent_curr,1),ans(1) 
-		      temp_numsent = temp_numsent + 1
-		   if (temp_numsent .lt. numsent)  goto 8888  ! one round events all received, thus proceed them
+	enddo
+	temp_ans(numsent_curr,cols+1) = sender
+	temp_numsent = temp_numsent + 1
+	if (temp_numsent .lt. numsent)  goto 8888  ! one round events all received, thus proceed them
 		   
-      do n = 1+ (count_round-1)*(numprocs-1), temp_numsent
+    	do n = 1+ (count_round-1)*(numprocs-1), temp_numsent
 		coll = coll + 1
-	   xpulse_del=.false.
-		! if (mod(coll,1000000).eq.0) write(fileout,*) 'simulation progress% ', float(coll)/float(ncoll)*100.0
-        i = int(temp_ans(n,1))
+		xpulse_del=.false.
+	        i = int(temp_ans(n,1))
 		tfalse = temp_ans(n,3)
-		! write(fileout,*) int(coll),i,n,numsent,numevents 
-		
-	   if (i .le. (noptotal)) then
+	
+	   	if (i .le. (noptotal)) then
 			j = int(temp_ans(n,2))				  
-	!		evcode = ev_code(i,j)
 			sv(1,i) = temp_ans(n,4)
 			sv(2,i) = temp_ans(n,5)
 			sv(3,i) = temp_ans(n,6)
@@ -693,41 +647,36 @@
 			sv(3,j) = temp_ans(n,12)
 			sv(4,j) = temp_ans(n,13)
 			sv(5,j) = temp_ans(n,14)
-		    sv(6,j) = temp_ans(n,15)
+		    	sv(6,j) = temp_ans(n,15)
 			coltype(i) = int(temp_ans(n,16))
 			ev_code(i,j) = int(temp_ans(n,28))
 
-	if (coltype(i).eq.14) then 
-	   if (temp_ans(n,26).eq.1.0) then
-	   if (identity(i).lt.identity(j)) then 
-		extra_repuls(i,1) = int(temp_ans(n,17))
-		extra_repuls(i,2) = int(temp_ans(n,18))
-		ncaj = extra_repuls(i,1)
-		nnjp1 = extra_repuls(i,2)
-
-		extra_repuls(ncaj,3)=i
-		ev_code(ncaj,i)=xrepuls2
-    	ev_code(i,ncaj)=xrepuls1
-
-		extra_repuls(nnjp1,3)=i
-		ev_code(i,nnjp1)=xrepuls1
-     	ev_code(nnjp1,i)=xrepuls2		
-
-		extra_repuls(j,1) = int(temp_ans(n,19))
-		extra_repuls(j,2) = int(temp_ans(n,20))
-		ncai = extra_repuls(j,1)
-		ncim1 = extra_repuls(j,2)
-
-		extra_repuls(ncai,3)=j
-        ev_code(ncai,j)=xrepuls2
-    	ev_code(j,ncai)=xrepuls1
-		
-		extra_repuls(ncim1,3)=j
-		ev_code(j,ncim1)=xrepuls1
-		ev_code(ncim1,j)=xrepuls2
-	   else
-		extra_repuls(j,1) = int(temp_ans(n,17))
-		extra_repuls(j,2) = int(temp_ans(n,18))
+			if (coltype(i).eq.14) then 
+	   			if (temp_ans(n,26).eq.1.0) then
+	   				if (identity(i).lt.identity(j)) then 
+						extra_repuls(i,1) = int(temp_ans(n,17))
+						extra_repuls(i,2) = int(temp_ans(n,18))
+						ncaj = extra_repuls(i,1)
+						nnjp1 = extra_repuls(i,2)
+						extra_repuls(ncaj,3)=i
+						ev_code(ncaj,i)=xrepuls2
+    						ev_code(i,ncaj)=xrepuls1
+						extra_repuls(nnjp1,3)=i
+						ev_code(i,nnjp1)=xrepuls1
+     						ev_code(nnjp1,i)=xrepuls2		
+						extra_repuls(j,1) = int(temp_ans(n,19))
+						extra_repuls(j,2) = int(temp_ans(n,20))
+						ncai = extra_repuls(j,1)
+						ncim1 = extra_repuls(j,2)
+						extra_repuls(ncai,3)=j
+        					ev_code(ncai,j)=xrepuls2
+    						ev_code(j,ncai)=xrepuls1
+						extra_repuls(ncim1,3)=j
+						ev_code(j,ncim1)=xrepuls1
+						ev_code(ncim1,j)=xrepuls2
+	   				else
+					extra_repuls(j,1) = int(temp_ans(n,17))
+					extra_repuls(j,2) = int(temp_ans(n,18))
 		ncaj = extra_repuls(j,1)
 		nnjp1 = extra_repuls(j,2)
 
@@ -955,80 +904,57 @@
 		endif
 
     endif	
-
-!		write(fileout,*) 'line 320',numevents,coll,i,j,nptnr(i),sort_time_list(i),tim(i),sv(1,i),sv(1,j)
-!		call eventdyn(i,j,evcode)
    
 	    nevents(coltype(i)) = nevents(coltype(i))+1  ! 1=core collision; 2=bond collision; 3=bond stretch 
 	
 #ifdef debugging                        
 #ifndef canon
         call energy(ered,tred,sumvel,hb_alpha,hb_ii,hb_ij,ehh_ii,ehh_ij)
-        if (nint(ered) .ne. nint(pre_energy)) then !	
-        !if (nint((ered-pre_energy)*100000.d0).gt.1.d0) then
-			print*, 'no more conserving energy at coll', coll, i,j,coltype(i)
-			print*, pre_energy, ered
-			print*, e_pot, ered-0.5d0*sumvel
-			print*, e_kin, 0.5d0*sumvel   
-			call exit(-1)
+        if (nint(ered) .ne. nint(pre_energy)) then 
+		print*, 'no more conserving energy at coll', coll, i,j,coltype(i)
+		print*, pre_energy, ered
+		print*, e_pot, ered-0.5d0*sumvel
+		print*, e_kin, 0.5d0*sumvel   
+		call exit(-1)
         end if
-          	e_pot=ered-0.5d0*sumvel
-           	e_kin = 0.5d0*sumvel
+        e_pot=ered-0.5d0*sumvel
+        e_kin = 0.5d0*sumvel
 #endif
 #endif            
-	    call partial_events(i,j,xpulse_del)  
-		      	old_tfalse = tfalse ! Yiming
-
-	!	write(fileout,*)'after coll, I and J:',coll,i,j,sv(1,i),sv(1,j),tim(i),tim(j)!,'bead 13',sv(1,13),sv(4,13),tim(13),nptnr(13),sv(1,nptnr(13)),sv(4,nptnr(13))
-	
-   ! if (coll.eq.1497) then
-     !  do ii=1,noptotal+3	 
-	 ! write(21,'(3i4,7f35.30)') coll,ii,nptnr(ii),tim(ii),sv(1,ii),sv(2,ii),sv(3,ii),sv(4,ii),sv(5,ii),sv(6,ii)
-	!  write(21,'(3i4,7f35.30)') coll,i,nptnr(i),tim(i),sv(1,i),sv(2,i),sv(3,i),sv(4,i),sv(5,i),sv(6,i)
-	 !    enddo
-    !  endif
-	  
-		   numevents_old = numevents_new
-		do while (bin(nbin) == 0)
-     	   	nbin = nbin + 1
+	    
+	call partial_events(i,j,xpulse_del)
+	old_tfalse = tfalse ! Yiming	  
+	numevents_old = numevents_new
+	do while (bin(nbin) == 0)
+     	nbin = nbin + 1
         end do
 		ii = bin(nbin)
 		k = tlinks(ii)		
 		numevents_new = 1
 			
      	do while (k .ne. 0)
-			numevents_new = numevents_new + 1
+		numevents_new = numevents_new + 1
      		k = tlinks(k)
-    	end do
- 		!write(fileout,*)'line 634',coll,numsent,numevents,numevents_new,numevents_old				
+    	end do			
 
 !Yiming: if next coll bead is related to this previous one, update their event time   
-		   do kkk =n+1,numevents
-         ! if ((sort_nptnr_list(kkk).eq.i).or.(sort_bead_list(kkk).eq.j).or.(sort_nptnr_list(kkk).eq.j)) then
-		  if ((sort_bead_list(kkk).le.noptotal).and.(tim(sort_bead_list(kkk)).ne.sort_time_list(kkk))) then
-		!  write(fileout,*) 'real1',coll,i
-
-			! write(fileout,*)'line 419' !,coll,i,j,kkk,sort_bead_list(kkk),sort_nptnr_list(kkk)
-		     go to 777	
-		  endif	
+		do kkk =n+1,numevents
+       		  	if ((sort_bead_list(kkk).le.noptotal).and.(tim(sort_bead_list(kkk)).ne.sort_time_list(kkk))) then
+			     go to 777	
+		  	endif	
 		enddo	
 		
 		if (numevents_old.eq.0) then	
-		 if ((numevents_new.ge.numevents).or.(numevents-numevents_new.ge.2)) then
-           !    write(fileout,*) 'real2',coll,i
-
-		    go to 777 ! resort 1st event bin 	 
-		 endif	
+			if ((numevents_new.ge.numevents).or.(numevents-numevents_new.ge.2)) then
+		    		go to 777 ! resort 1st event bin 	 
+		 	endif	
 	 		
 		else if (numevents_old.gt.1) then
-		 if ((numevents_new.ge.numevents_old).or.(numevents_old-numevents_new.ge.2)) then
-		!    write(fileout,*) 'real3',coll,i
-
-		    go to 777 ! resort 1st event bin 	 
-		 endif
+		 	if ((numevents_new.ge.numevents_old).or.(numevents_old-numevents_new.ge.2)) then
+		    		go to 777 ! resort 1st event bin 	 
+		 	endif
 		endif					
 		
-    !   cycle
 #ifdef canon
     elseif (i == (noptotal) + 1) then
 3      	i = int(drandm(0)*(noptotal)) + 1
@@ -1052,7 +978,6 @@
            	fact=sqrt(-2.d0*setemp*bm(i)*log(r)/r)
            	sv(4,i) = v1*fact/bm(i)
            	sv(5,i) = v2*fact/bm(i)
-       !  write(22,'(2i4,6f35.30)') coll,i,r,log(r),-2.d0*setemp*bm(i)*log(r)/r,fact,sv(4,i),sv(5,i)
 			
 5        	v1 = 2.d0*drandm(0)-1.d0
            	v2 = 2.d0*drandm(0)-1.d0
@@ -1061,7 +986,6 @@
            	if ((r.eq.0.d0).or.(r.ge.1.d0)) goto 5
            	fact=sqrt(-2.d0*setemp*bm(i)*log(r)/r)
 			
-			! if (coll.eq.15) write(22,'(2i4,5f35.30)') coll,i,v1,r,setemp,fact,bm(i)		
            	sv(6,i) = v1*fact/bm(i)
 !          	take care of false positions by rewinding
            	sv(1,i)=sv(1,i)-sv(4,i)*tfalse
@@ -1070,35 +994,29 @@
 !    		find new ghost time(s) for the bead(s) involved in the last
 !          	event; otherwise, the ghost event time list doesn't change
 
-            if (tlinks2((noptotal)+1) .ne. 0) call del_tbin((noptotal)+1)
+            	if (tlinks2((noptotal)+1) .ne. 0) then
+			call del_tbin((noptotal)+1)
+		endif
 
 	    	tgho=0.d0
 	    	do while ((tgho .lt. 1.d-18) .or. (tgho .eq. 1.d0))
                	tgho = drandm(0) 
 	    	enddo  
            
-            tim((noptotal)+1) = -1.d0*alog(tgho)*avegtime + tfalse
-            if (tim((noptotal)+1) .lt. interval_max) call add_tbin((noptotal)+1)
+            	tim((noptotal)+1) = -1.d0*alog(tgho)*avegtime + tfalse
+            	if (tim((noptotal)+1) .lt. interval_max) then
+			call add_tbin((noptotal)+1)
+		endif
 				
-            if (tfalse .lt. old_tfalse) tfalse = old_tfalse	
-
+            	if (tfalse .lt. old_tfalse) tfalse = old_tfalse	
 	    	call partial_events(i,0,xpulse_del)
-
-   !  if (coll.le.ncoll) then
-      ! do ii=1,noptotal+3	 
-	  !write(21,'(4i4,7f35.30)') coll,noptotal+1,ii,nptnr(ii),tim(ii),sv(1,ii),sv(2,ii),sv(3,ii),sv(4,ii),sv(5,ii),sv(6,ii)
-  	  !   enddo
-	!  write(21,'(4i4,7f35.30)') coll,noptotal+1,i,nptnr(i),tim(i),sv(1,i),sv(2,i),sv(3,i),sv(4,i),sv(5,i),sv(6,i)
-    !  endif
-	!		write(fileout,*)'after ghost coll:',coll,i,identity(i),sv(1,i),sv(4,i),sv(5,i),sv(6,i),tim(i),nptnr(i),tim(nptnr(i)),tim(noptotal+1) !,tfalse,old_tfalse!,'bead 13',sv(1,13),sv(4,13),tim(13),nptnr(13),sv(1,nptnr(13)),sv(4,nptnr(13))
-				
-			  old_tfalse = tfalse ! Yiming
+		old_tfalse = tfalse ! Yiming
 					
 !Yiming: if next coll bead is related to this previous one, update their event time   		
-		   numevents_old = numevents_new
+		numevents_old = numevents_new
 		do while (bin(nbin) == 0)
-     	   	nbin = nbin + 1
-        end do
+     	   		nbin = nbin + 1
+        	end do
 		ii = bin(nbin)
 		k = tlinks(ii)		
 		numevents_new = 1
@@ -1107,63 +1025,42 @@
 			numevents_new = numevents_new + 1
      		k = tlinks(k)
     	end do
- 		!write(fileout,*)'line 634',coll,numsent,numevents,numevents_new,numevents_old
 
 		if (n .lt. numevents) then
-		   do kkk =n+1,numevents
+			do kkk =n+1,numevents
+		  		if (tim(i).le.sort_time_list(kkk)) then
+		     			go to 777			
+		 		endif
 
-		  if (tim(i).le.sort_time_list(kkk)) then !.or.(tim(nptnr(i)).le.sort_time_list(kkk))) then  
-		!   write(fileout,*) 'ghost1',coll,i
+		  		if (tim(noptotal+1).le.tim(sort_bead_list(kkk))) then 
+			     		go to 777			 
+		 		endif
 
-		! write(fileout,*)'line 533' !,coll,i,kkk,sort_bead_list(kkk),sort_nptnr_list(kkk)
-		     go to 777			
-		 endif
-
-		  if (tim(noptotal+1).le.tim(sort_bead_list(kkk))) then 
-		  	!	   write(fileout,*) 'ghost2',coll,i
-
-		! write(fileout,*)'line 522' !, coll,i,kkk,sort_bead_list(kkk),sort_nptnr_list(kkk)
-		     go to 777			 
-		 endif
-	
-        !  if ((sort_bead_list(kkk).eq.i).or.(sort_nptnr_list(kkk).eq.i)) then
-		!  if ((sort_bead_list(kkk).le.noptotal).and.(tim(sort_bead_list(kkk)).ne.sort_time_list(kkk))) then
-		  if (tim(sort_bead_list(kkk)).ne.sort_time_list(kkk)) then
-		  	!	   write(fileout,*) 'ghost3',coll,i
-
-		! write(fileout,*)'line 512' !,coll,i,kkk,sort_bead_list(kkk),sort_nptnr_list(kkk)
-		     go to 777	
-		  endif			 
+				if (tim(sort_bead_list(kkk)).ne.sort_time_list(kkk)) then
+			     		go to 777	
+		  		endif			 
 		 
-		enddo
+			enddo
 		
-      endif		
+      		endif		
 	  
 !Yiming: pale event in 1st bin appears after accepting this collision  
 !Yiming: if there is newly generated event into the 1st bin after accepting this collision  
 		if (numevents_old.eq.0) then	
-		 if ((numevents_new.ge.numevents).or.(numevents-numevents_new.ge.2)) then
-		 		!   write(fileout,*) 'ghost4',coll,i
-
-		    go to 777 ! go back to resort 1st event bin 	 
-		 endif	
+			if ((numevents_new.ge.numevents).or.(numevents-numevents_new.ge.2)) then
+				go to 777 ! go back to resort 1st event bin 	 
+			endif	
 	 		
 		else if (numevents_old.gt.1) then
-		 if ((numevents_new.ge.numevents_old).or.(numevents_old-numevents_new.ge.2)) then
-		  		!   write(fileout,*) 'ghost5',coll,i
-
-		    go to 777 ! go back to resort 1st event bin 	 
-		 endif
+		 	if ((numevents_new.ge.numevents_old).or.(numevents_old-numevents_new.ge.2)) then
+		    		go to 777 ! go back to resort 1st event bin 	 
+		 	endif
 		endif
 	  
-       !     cycle
 #endif
     
      else if (i == (noptotal) + 2) then
-	  !      tfalse = ans(2)
-!       	advance all particles to real positions and check if nbor list should be updated
-	    	t = t + tfalse            
-		!	write(fileout,*)'line 523', coll, t, tfalse
+	    t = t + tfalse            
 !           reduce collision time list by time of current collision
 
             do k=1,(noptotal)+3
@@ -1188,48 +1085,46 @@
                   		nforcedupdate=nforcedupdate+1
 	          		n_forced = n_forced * 1.01d0
                   		print*, 'forced updated', t, 'n_forced', n_forced
-             endif
+             	endif
                	interval_max = interval * n_forced
 				sortsize = interval_max/dble(numbin)
                	tbin_off = 0.d0
                	update=.false.
                	nupdates=nupdates+1
-					do k=1,(noptotal)
+			do k=1,(noptotal)
                   		sv(1,k) = sv(1,k) - anint(sv(1,k))
                   		sv(2,k) = sv(2,k) - anint(sv(2,k))
                   		sv(3,k) = sv(3,k) - anint(sv(3,k))
-						old_rx(k)=sv(1,k)
+				old_rx(k)=sv(1,k)
                   		old_ry(k)=sv(2,k)
                   		old_rz(k)=sv(3,k)	  
-					enddo	
+			enddo	
 		
-               	call nbor()
+               		call nbor()
 !              	reset all times to interval_max+ltstep
-					do k=1,(noptotal)
+			do k=1,(noptotal)
                   		tim(k)=interval_max+ltstep
                   		coltype(k)=-1
                   		nptnr(k)=-1
-					enddo
-               	call events()
-				nbin = 1      !reset to check from the 1st bin
-           endif
-				if (tlinks2(i) .ne. 0) call del_tbin(i)            
+			enddo
+               		call events()
+			nbin = 1      !reset to check from the 1st bin
+           	endif
+				if (tlinks2(i) .ne. 0) then
+					call del_tbin(i)
+				endif            
 					tim(i) = interval*0.999d0 
 				call add_tbin(i)
 				
-      	old_tfalse = tfalse ! Yiming
-		!write(12,*) coll, old_tfalse
+      		old_tfalse = tfalse ! Yiming
 
-		    go to 777 ! go back to resort 1st event bin 	
-	
-      !      	cycle
+		go to 777 ! go back to resort 1st event bin 	
 	
 	else if (i == (noptotal) + 3) then
-		!        tfalse = ans(2)
 #ifdef debugging
 		call checkover(over)
             	if (over) then
-               	write(fileout,*)'found overlap/underlap at coll', coll
+               	write(6,*)'found overlap/underlap at coll', coll
                	call exit(-1)
             	endif
             	call check_nc_int(boundbad, unboundbad)
@@ -1244,7 +1139,7 @@
 	    	call radgyr(rg_avg)
 	    	call end_to_end(e2e_avg)
 	    	write(rune,22223) coll,(t+tfalse)*sqrt(setemp)/(sigma(1)*boxl_orig),ered,tred,hb_alpha,hb_ii,hb_ij,ehh_ii,ehh_ij,rg_avg,e2e_avg
-            call flush(rune)
+            	call flush(rune)
 
 #ifndef canon
             if (nint(ered) .ne. nint(pre_energy)) then
@@ -1254,7 +1149,7 @@
                	print*, e_kin, 0.5d0*sumvel
                	call exit(-1)
             end if
-				e_pot=ered-0.5d0*sumvel
+		e_pot=ered-0.5d0*sumvel
             	e_kin = 0.5d0*sumvel
 #endif
 !           write each config. during the entire simul
@@ -1272,19 +1167,20 @@
 	    	if (coll .ge. quarter) call sum(hb_ii+hb_ij,hh_ii+hh_ij)
 #endif
 
-			if (tlinks2(i) .ne. 0) call del_tbin(i)
+			if (tlinks2(i) .ne. 0) then
+				call del_tbin(i)
+			endif
 			tim(i)=3.3d0/(sqrt(setemp)) + 5 + tfalse
-			if (tim(i) .lt. interval_max) call add_tbin(i)
-		!	write(fileout,*)'after noptotal+3 coll:',coll,1,sv(1,1),sv(4,1)	
-			old_tfalse = tfalse
- 		!write(12,*) coll, old_tfalse
-	
+			if (tim(i) .lt. interval_max) then
+				call add_tbin(i)
+			endif	
+			old_tfalse = tfalse	
 	 end if	   
 
 
 	if (coll.ge.ncoll) then 
-	        call  MPI_SEND(1.0,0,MPI_DOUBLE_PRECISION,sender,0, MPI_COMM_WORLD, ierr)	
-	 go to 999	
+	 	call  MPI_SEND(1.0,0,MPI_DOUBLE_PRECISION,sender,0, MPI_COMM_WORLD, ierr)	
+	 	go to 999	
      endif
     enddo
 
@@ -1297,8 +1193,8 @@
 #ifdef equil
 !     	check for equilibrium
       	if (coll-1 .eq. ncoll) then
-	 	write(fileout,*) ' '
-	 	write(fileout,*) 'at coll', ncoll
+	 	write(6,*) ' '
+	 	write(6,*) 'at coll', ncoll
 	 	call average(per_hb,per_hh)
 	 	call flush(6)
 	 	if ((per_hb .gt. 5.0) .or. (per_hh .gt. 5.0)) then
@@ -1314,7 +1210,8 @@
 !                     main loop ends
 !**********************************************************************
 
-999    	delta_nv = dtime(tarray_nv)
+999    	call cpu_time(finish)
+	delta_nv = finish-start
 !     	delta is in seconds - change to hours (or minutes)
       	extime_nv = delta_nv/3600.
       	colrat_nv = float(coll-1)/extime_nv/1.0e6
@@ -1337,16 +1234,16 @@
       	call radgyr(rg_avg)
       	call end_to_end(e2e_avg)
       	write(rune,22223) coll,t*dsqrt(setemp)/(sigma(1)*boxl_orig),ered,tred,hb_alpha,hb_ii,hb_ij,ehh_ii,ehh_ij,rg_avg,e2e_avg
-      	write(fileout,*)' '
-      	write(fileout,*)'the final total energy of system (e) is ',ered
-     	write(fileout,*)'the final potential energy of system is ',e_int
-      	write(fileout,*)'the final kinetic energy of system is ',ered-e_int
-      	write(fileout,*)'the final temperature of system (kt) is ',tred
-      	write(fileout,*)
-      	write(fileout,*)'the final number of alpha-helical hb',hb_alpha
-      	write(fileout,*)'the final number of hydrogen bonds',hb_ii+hb_ij
-      	write(fileout,*)'the final number of hydrophobic interactions',ehh_ij+ehh_ij
-      	write(fileout,*)' '
+      	write(6,*)' '
+      	write(6,*)'the final total energy of system (e) is ',ered
+     	write(6,*)'the final potential energy of system is ',e_int
+      	write(6,*)'the final kinetic energy of system is ',ered-e_int
+      	write(6,*)'the final temperature of system (kt) is ',tred
+      	write(6,*)
+      	write(6,*)'the final number of alpha-helical hb',hb_alpha
+      	write(6,*)'the final number of hydrogen bonds',hb_ii+hb_ij
+      	write(6,*)'the final number of hydrophobic interactions',ehh_ij+ehh_ij
+      	write(6,*)' '
 
 #ifdef write_phipsi
       	call phipsi()
@@ -1376,54 +1273,58 @@
 	enddo
 #endif
 
-      	filename = 'results/run'//fname_digits//'.pdb'
-      	open(unit=11113, file=filename)
       	call write_rasmol
-      	close(unit=11113)      
+    
 !     	********** time ********** 
-      	write(fileout,*)'t=',t + tfalse
+      	write(6,*)'t=',t + tfalse
       	tstar=(t+tfalse)*dsqrt(setemp)/sigma(1)
 !     	this is gulati's calculation:  tdl=t*dsqrt(tred)/sigma(2)
-      	write(fileout,*)'total simulation time is ',t+tfalse
-      	write(fileout,*)'dimensionless time is ',tstar
-      	write(fileout,*)'collision rate is ',ncoll/tstar
-      	write(fileout,*)
+      	write(6,*)'total simulation time is ',t+tfalse
+      	write(6,*)'dimensionless time is ',tstar
+      	write(6,*)'collision rate is ',ncoll/tstar
+      	write(6,*)
+
 !     	********** event tally ********** 
       	do k = 1, 30
-	 	if (nevents(k) .ne. 0) write(fileout,*)'event', k, nevents(k)/dble(ncoll)*100.0,'%'
+	 	if (nevents(k) .ne. 0) write(6,*)'event', k, nevents(k)/dble(ncoll)*100.0,'%'
       	enddo
-      	write(fileout,*)  
-     	write(fileout,*)'number of ghost events = ',numghosts
-      	write(fileout,*)'    = ',dble(numghosts)/dble(ncoll)*100.,'%'
-      	write(fileout,*)'number of  neighbor list updates= ',nupdates - nforcedupdate
-      	write(fileout,*)'number of  forced neighbor list updates= ',nforcedupdate
-      	write(fileout,*)
+      	write(6,*)  
+     	write(6,*)'number of ghost events = ',numghosts
+      	write(6,*)'    = ',dble(numghosts)/dble(ncoll)*100.,'%'
+      	write(6,*)'number of  neighbor list updates= ',nupdates - nforcedupdate
+      	write(6,*)'number of  forced neighbor list updates= ',nforcedupdate
+      	write(6,*)
      
 #ifdef debugging
       	write(*,*) 'number of times hbing particles caught w/ bad angle', boundbad
       	write(*,*) 'number of times non-hbing particles should have been hbing', unboundbad
 #endif
 
-      	write(fileout,*)
-     	write(fileout,*)'details on the time in the main loop ...'
-      	write(fileout,'('' execution time (cpu hours)  '',f15.4)') extime_nv
-      	write(fileout,'('' millions of coll/cpu hour   '',f15.3)') colrat_nv
+      	write(6,*)
+     	write(6,*)'details on the time in the main loop ...'
+      	write(6,'('' execution time (cpu hours)  '',f15.4)') extime_nv
+      	write(6,'('' millions of coll/cpu hour   '',f15.3)') colrat_nv
 
       	deallocate(cell)
       	deallocate(wrap_map)
-
+	call fileclose()
 22222 	format(i15,3f12.4,5i8,6f12.4)
 22223 	format(i15,3f12.4,3i8,4f12.4)
 
-      	go to 888
-	enddo
 	Else
 
 !   Yiming: slave receives broadcasted constants from master
 	call MPI_BCAST(noptotal,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(nop1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(nop2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(chnln1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(chnln2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(numbeads1,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(numbeads2,1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+
 	call MPI_BCAST(chnnum,noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
 	!call MPI_BCAST(identity,noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)  
-	call MPI_BCAST(bm,noptotal,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bm(1:noptotal),noptotal,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(ev_param,3*50,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	!call MPI_BCAST(ev_code,noptotal*noptotal,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)	
 	call MPI_BCAST(setemp,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
@@ -1432,16 +1333,17 @@
 	call MPI_BCAST(ep_sqrt,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(ep,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(welldia_sq,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(fside1,chnln1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(fside2,chnln2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(hp,numbeads1+numbeads2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	
+	call MPI_BCAST(fside1(1:chnln1),chnln1,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(fside2(1:chnln2),chnln2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(hp(1:numbeads1+numbeads2),numbeads1+numbeads2,MPI_INTEGER,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(sqz610,5*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bdln,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bl_rc,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(bl_rn,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_bdln,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_blrc,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
-	call MPI_BCAST(del_blrn,chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bdln(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bl_rc(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(bl_rn(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_bdln(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_blrc(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
+	call MPI_BCAST(del_blrn(1:chnln1+chnln2),chnln1+chnln2,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	
 	call MPI_BCAST(shlddia_sq,28*28,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
 	call MPI_BCAST(shder_dist1,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,ierr)
@@ -1457,17 +1359,17 @@
 90   call MPI_RECV(buffer,cols,MPI_DOUBLE_PRECISION, master,MPI_ANY_TAG, MPI_COMM_WORLD, status,ierr)
 
 	if (status(MPI_TAG) .ne. 0) then
-	     xpulse_del = .false.
-		 hb_partner = 0 
+		xpulse_del = .false.
+		hb_partner = 0 
 		row=status(MPI_TAG) ! row is numsent 
-	   do ii = 1,cols	
-		ans(ii) = 0.d0
-       enddo
+		do ii = 1,cols	
+			ans(ii) = 0.d0
+       		enddo
   		i = int(buffer(1))
-	!write(fileout,*) 'slave, line 1196', i,row 
+
 !   Yiming: judge collision type & calculate  Δt, V, x
 		if  (i .le. (noptotal)) then
-		    j = int(buffer(2))
+		    	j = int(buffer(2))
 			tfalse = buffer(3)	
 			sv(1,i) = buffer(4)
 			sv(2,i) = buffer(5)
@@ -1489,17 +1391,14 @@
 			bptnr(j) = int(buffer(21))
 			extra_repuls(i,1) = int(buffer(22))
 			extra_repuls(i,2) = int(buffer(23))
-            extra_repuls(i,3) = int(buffer(24))
+            		extra_repuls(i,3) = int(buffer(24))
 			extra_repuls(i,4) = int(buffer(25))
 			extra_repuls(j,1) = int(buffer(26))
 			extra_repuls(j,2) = int(buffer(27))
-            extra_repuls(j,3) = int(buffer(28))
+            		extra_repuls(j,3) = int(buffer(28))
 			extra_repuls(j,4) = int(buffer(29))
-        !    if (bptnr(i).ne.0) identity(bptnr(i)) = int(buffer(30))
-        !    if (bptnr(j).ne.0) identity(bptnr(j)) = int(buffer(31))
 			if (extra_repuls(i,4).ne.0) identity(extra_repuls(i,4)) = int(buffer(30))
 			if (extra_repuls(j,4).ne.0) identity(extra_repuls(j,4)) = int(buffer(31))		
-		!	write(fileout,*)'slave receive normal coll:',i,j,tfalse,evcode,coltype(i),sv(1,i),sv(4,i),bm(i),bm(j)
 		
 !!!!!HP+HB !!!!!
           	if (i .le. nop1) then
@@ -1516,7 +1415,6 @@
           	elseif (j .le. nop1+nop2) then
                   	jj = j-nop1-((chnnum(j)-(nop1/numbeads1)-1)*numbeads2)+numbeads1
          	endif
-      		!evcode = ev_code(i,j)
 			
 !           	1=core collision; 2=bond collision; 3=bond stretch 
 !           	if next event is square-well and involves n and c, must check 
@@ -1627,7 +1525,7 @@
                   		endif
                	else
                   		hb_partner = extra_repuls(j,4)
-						!write(fileout,*) i,j,hb_partner
+						!write(6,*) i,j,hb_partner
                   		if (identity(j) < identity(hb_partner)) then
 !                    		j is n, hb_partner is c
                      		call repuls_check_3(j,hb_partner,i,rating)
@@ -1669,8 +1567,9 @@
                        endif
 	          	endif
           endif
-!!!!!HP+HB !!!!!
+!!!!!HP+HB !!!!!		
 		if (coltype(i) .lt. 14)  call eventdyn(i,j,evcode)
+
 !!!!!HP+HB !!!!!
             	if (coltype(i).eq.20) then
                	   if (identity(i)+identity(j) .eq. 5) then
@@ -1679,10 +1578,10 @@
                   		bptnr(j)=i
                   		identity(i)=identity(i)+4
                   		identity(j)=identity(j)+4
-			ans(22) = dble(bptnr(i))
-			ans(23) = dble(bptnr(j))
-			ans(24) = dble(identity(i))
-			ans(25) = dble(identity(j))
+				ans(22) = dble(bptnr(i))
+				ans(23) = dble(bptnr(j))
+				ans(24) = dble(identity(i))
+				ans(25) = dble(identity(j))
                   		if ((i .le. nop1) .and. (j .le. nop1)) then
                   			if ((ii.ne.chnln1+1).and.(ii.ne.3*chnln1).and.(jj.ne.chnln1+1).and.(jj.ne.3*chnln1)) then
 !                 				capture didn't involve an end bead
@@ -1992,7 +1891,7 @@
 			ans(16) = dble(coltype(i))	
             ans(28)	= dble(evcode)	
 
-		!	write(fileout,*)'slave calculate normal coll:',i,j,tfalse,evcode,coltype(i),sv(1,i),sv(4,i),bm(i),bm(j)
+		!	write(6,*)'slave calculate normal coll:',i,j,tfalse,evcode,coltype(i),sv(1,i),sv(4,i),bm(i),bm(j)
          call MPI_SEND(ans,cols,MPI_DOUBLE_PRECISION,master,row,MPI_COMM_WORLD,ierr)
 		 	    goto 90	
 #ifdef canon
@@ -2019,14 +1918,14 @@
 		end if
 		
 	 end if
-	     	write(fileout,*) 'terminate slave',status(MPI_TAG),MPI_TAG
+	     	write(6,*) 'terminate slave',status(MPI_TAG),MPI_TAG
+		write(6,*) 'mpi finalized' 
+		call MPI_FINALIZE(ierr)
+
 	End if
 !	Yiming: enddo for the major loop in serial code   
-888		write(fileout,*) 'mpi finalized' 
-    call MPI_FINALIZE(ierr)
     End	
 #include "readinputs.f"
-#include "allocatearrays.f"
 #include "genconfig.f"
 #include "bumped.f"      
 #include "sqshlder.f"      
@@ -2063,6 +1962,7 @@
 #include "scale_up.f"
 #include "sqwel.f"
 #include "files_close.f"
+#include "allocatearrays.f"
 !LR: I separated the analysis code out of the main code.
 #include "radgyr.f"  
 #include "end2end.f"

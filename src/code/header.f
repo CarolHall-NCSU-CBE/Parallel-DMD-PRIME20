@@ -1,3 +1,7 @@
+! =========================================================================
+! This module defines global parameters and variables used for simulations
+! Last modified on 10/12/2023 by Van Nguyen
+! =========================================================================
 
       module GLOBAL
 	use inputreadin
@@ -9,20 +13,13 @@
       external dtime,drandm,time,srand
 
 !VN: Create allocatable arrays:
-	integer(kind=k1), allocatable :: ev_code(:,:)
-	integer, allocatable :: hp1(:),hp2(:)	!hp(:),
-	integer, allocatable :: coltype(:),extra_repuls(:,:) !chnnum(:),
-	integer, allocatable :: bptnr(:),identity(:),nptnr(:)
+	integer(kind=k1) :: ev_code(10000,10000)
+	integer, allocatable :: hp1(:),hp2(:)
+	integer :: nptnr(10000)
 	integer, allocatable :: npt(:),nb(:),na_npt(:),npt_dn(:),dnnab(:),nnabdn(:)
-	integer, allocatable :: tlinks(:),tlinks2(:)
-	integer, allocatable :: clinks(:)	!,fside1(:),fside2(:)
-	!real, allocatable :: bdln(:)
-	real, allocatable :: sv(:,:)	!bl_rn(:),bl_rc(:),
+	integer :: tlinks(10000),tlinks2(10000)
+	integer :: clinks(10000)
 	real, allocatable :: old_rx(:),old_ry(:),old_rz(:)
-	real, allocatable :: tim(:)	!, bm(:)
-	!real, allocatable :: del_bdln(:),del_blrn(:),del_blrc(:)
-
-
 
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
       
@@ -30,9 +27,10 @@
 !LR: Added a third species numbeads variable. I could not replace these with noptotal variables due to FORTRAN limitations
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
       integer res(0:360,0:360), chnnum(10000)
-	real bm(10000), bdln(175)
+	real bm(10000), bdln(175), tim(10000)
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
       !integer bptnr((nop1+nop2)),identity((nop1+nop2)),nptnr((nop1+nop2)+3)
+	integer identity(10000), bptnr(10000)
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
 	!integer npt((nop1+nop2)+1),nb(maxnbs*(nop1+nop2)+1),na_npt((nop1+nop2)),npt_dn((nop1+nop2)+1),dnnab(maxnbs*(nop1+nop2)+1),nnabdn((nop1+nop2))
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
@@ -54,7 +52,6 @@
 !LR: Here, I did not add a chnln3 variable, because these are bond-only arrays, and the nanoparticle cannot have bonds.
       real hdelr,rlsq(50)
 !LR: Added a third species nop variable. I could not replace these with noptotal variables due to FORTRAN limitations
-      !real old_rx((nop1+nop2)),old_ry((nop1+nop2)),old_rz((nop1+nop2))
       real sigma(28),welldia(28),epsilon(28)
       real sigma_sq(28,28),sigma_2b(28,28),welldia_sq(28,28),ep_sqrt(28,28),sig_max_all,shlddia_sq(28,28)
       real tfalse,pi,interval,t_fact,interval_max,sortsize,tbin_off,n_forced
@@ -76,19 +73,10 @@
 !VN: Arrays that are converted to allocatable arrays
 !	integer(kind=k1) ev_code(10000,10000)
 !LR: Added hp3 to hold hydrophobic data for species 3
-!      integer hp(numbeads1+numbeads2),hp1(numbeads1),hp2(numbeads2)!, hp3(numbeads3)
-!	integer chnnum((nop1+nop2)),coltype((nop1+nop2)+3),extra_repuls((nop1+nop2),4)
-!	integer tlinks((nop1+nop2)+3),tlinks2((nop1+nop2)+3)
-!	integer clinks((nop1+nop2)),num_cell,fside1(chnln1),fside2(chnln2)!,fside3(chnln3)
 	integer fside1(31),fside2(31), hp(175)
 	real bl_rn(175),bl_rc(175)
-	!real bl_rn(175),bl_rc(175)
-	!real hdelr,rlsq(50),sv(6,(nop1+nop2))
-!	real tim((nop1+nop2)+3), bm((nop1+nop2))
-
-
-      real shder_dist1,shder_dist2,shder_dist3,shder_dist4
-
-		
-      end module global
+	real sv(6,10000)
+	integer extra_repuls(10000,4), coltype(10000)
+      	real shder_dist1,shder_dist2,shder_dist3,shder_dist4		
+end module global
 

@@ -1,6 +1,9 @@
-!	subroutine partial_events updates times for collisions btwn 
-!    	pairs of  neighbors that include at least one of the two 
-!    	particles that just collided (i and/or j) 
+! ============================================================================
+!Subroutine partial_events updates times for collisions btwn pairs of neighbors 
+!that include at least one of the two particles that just collided (i and/or j) 
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
+
 
 	subroutine partial_events(i,j,xpulse_del)
 
@@ -14,7 +17,7 @@
 	logical xpulse_del
 	integer i,j,k,kk,l,ll,m,kstart,kend
 
-	if (tlinks2(i) .ne. 0) call del_tbin(i)
+	if (tlinks2(i) .ne. 0) call del_tbin(i)	
     	tim(i)=interval_max+ltstep-tfalse
      	coltype(i)=-1         
 	nptnr(i)=-1	
@@ -33,7 +36,9 @@
 	end do
 
 	tim(i)=tim(i)+tfalse
-	if (tim(i) .lt. interval_max) call add_tbin(i)	
+	if (tim(i) .lt. interval_max) then
+		call add_tbin(i)
+	endif	
 
 #ifdef canon
 	if (j.ne.0) then
@@ -43,7 +48,7 @@
     	tim(j)=interval_max+ltstep-tfalse
      	coltype(j)=-1
 	nptnr(j)=-1
-       kstart=(j-1)*maxnbs+1
+	kstart=(j-1)*maxnbs+1
   	kend=kstart+na_npt(j)-1
 
       	do k=kstart,kend
@@ -77,23 +82,23 @@
 !     			l's next event is with i
 		else
 	      		if (tlinks2(l) .ne. 0) call del_tbin(l)
-	      		tim(l)=interval_max+ltstep-tfalse
-	      		coltype(l)=-1
-	      		nptnr(l)=-1
-              	kstart=(l-1)*maxnbs+1
-              	kend=kstart+na_npt(l)-1
-              	do ll=kstart,kend
-                 		m=nb(ll)
-                 		call eventredo_up(l,m)
-              	enddo
-	      		do ll=1,3
-                 		if (extra_repuls(l,ll) .gt. l) then
-	            			call eventredo_up(l,extra_repuls(l,ll))
-                 		end if
-	      		end do
-	      		tim(l)=tim(l)+tfalse
-	      		if (tim(l) .lt. interval_max) call add_tbin(l)
-	   	endif
+	      			tim(l)=interval_max+ltstep-tfalse
+	      			coltype(l)=-1
+	      			nptnr(l)=-1
+              			kstart=(l-1)*maxnbs+1
+              			kend=kstart+na_npt(l)-1
+              			do ll=kstart,kend
+                 			m=nb(ll)
+                 			call eventredo_up(l,m)
+              			enddo
+	      			do ll=1,3
+                 			if (extra_repuls(l,ll) .gt. l) then
+	            				call eventredo_up(l,extra_repuls(l,ll))
+                 			end if
+	      			end do
+	      			tim(l)=tim(l)+tfalse
+	      			if (tim(l) .lt. interval_max) call add_tbin(l)
+	   		endif
 	enddo
 
 	do kk = 1, 3

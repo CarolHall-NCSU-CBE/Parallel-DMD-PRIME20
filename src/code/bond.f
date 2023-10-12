@@ -1,5 +1,8 @@
-!	subroutine bond finds bond event time and type for i,j pair
+! ============================================================================
+!  Subroutine bond finds bond event time and type for i,j pair
 !	2=bond collision, 3=bond stretch		  
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
 	
 	subroutine bond(i,j,evcode,tij,type)
 
@@ -13,8 +16,8 @@
 	integer evcode,type
 	integer i,j,ii
 	real*8 tij,blmin,blmax,vxij,vyij,vzij,rxij,ryij,rzij,bij,rijsq,vijsq
-	real*8 discr1,discr2	
-
+	real*8 discr1,discr2
+	
        if (i .le. nop1) then
 		ii=i-((chnnum(i)-1)*numbeads1)
 !		decide how much to let bonds fluctuate with del in header.f

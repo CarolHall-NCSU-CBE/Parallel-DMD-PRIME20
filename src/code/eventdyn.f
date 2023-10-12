@@ -1,6 +1,9 @@
-!	subroutine eventdyn calculates new velocities for particles 
-!	involved in a collision and calculates collision virial
-!	the notations in PRIME20 and the assigment are different
+! ============================================================================
+! Subroutine eventdyn calculates new velocities for particles involved in 
+! a collision and calculates collision virial
+! The notations in PRIME20 and the assigment are different	  
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
 
 	subroutine eventdyn (i,j,evcode) 
 
@@ -28,12 +31,12 @@
 	rzij=rzij-dnint(rzij)
 	bij=rxij*vxij+ryij*vyij+rzij*vzij
 	rmass=2*bm(i)*bm(j)/(bm(i)+bm(j))
-	if(rmass.le.0) write(fileout,*) "rmass=",rmass
-	if(rmass.le.0) write(fileout,*)  i,j,identity(i),identity(j)
-	if(bm(i).le.0) write(fileout,*) "bm(i)=",bm(i)
-	if(rmass.le.0) write(fileout,*)  i,identity(i)
-	if(bm(j).le.0) write(fileout,*) "bm(j)=",bm(j)
-	if(rmass.le.0) write(fileout,*)  j,identity(j)
+	if(rmass.le.0) write(6,*) "rmass=",rmass
+	if(rmass.le.0) write(6,*)  i,j,identity(i),identity(j)
+	if(bm(i).le.0) write(6,*) "bm(i)=",bm(i)
+	if(rmass.le.0) write(6,*)  i,identity(i)
+	if(bm(j).le.0) write(6,*) "bm(j)=",bm(j)
+	if(rmass.le.0) write(6,*)  j,identity(j)
 
        if (i .le. nop1) then
 		if (coltype(i).eq.2) then
@@ -47,7 +50,7 @@
 	   		elseif (evcode.eq.12) then		
               		blmin=(1.d0-del_blrc(ii-2*chnln1))*bl_rc(ii-2*chnln1)
 	   		endif
-			ratio=rmass*bij/(blmin*blmin)	   
+			ratio=rmass*bij/(blmin*blmin)	  
 		elseif (coltype(i).eq.3) then
 !       		bond extension
 	   		blmax=ev_param(3,evcode)
@@ -63,17 +66,17 @@
 		elseif (coltype(i).eq.1) then
 !       		core collision	
            		if (evcode .eq. 15) then
-              		if (bptnr(i) .eq. j) then
+              			if (bptnr(i) .eq. j) then
                  			sigsq = sigma_sq(identity(i),identity(j))*ev_param(1,evcode)**2
-              		else
+              			else
                  			sigsq = sigma_sq(identity(i),identity(j))
-              		end if
+              			end if
            		else
-              		sigsq = sigma_sq(identity(i),identity(j))*ev_param(1,evcode)**2
-              		if(evcode.ge.22.and.evcode.le.26) then
-              			k=max0(identity(i),identity(j))
-              			sigsq=sigsq*sqz610(evcode-21,k)**2
-              		endif
+              			sigsq = sigma_sq(identity(i),identity(j))*ev_param(1,evcode)**2
+              			if(evcode.ge.22.and.evcode.le.26) then
+              				k=max0(identity(i),identity(j))
+              				sigsq=sigsq*sqz610(evcode-21,k)**2
+              			endif
            		end if
 	   		ratio=rmass*bij/sigsq
         	else if (coltype(i).eq.4) then
@@ -94,7 +97,7 @@
            		else    
 ! 				bounce
 	      			ratio=rmass*bij/wellsq
-              		coltype(i)=22
+              			coltype(i)=22
 	   			bumpdist=smdist*dsqrt(wellsq)
            			sv(1,i) = sv(1,i) + bumpdist*rxij
            			sv(2,i) = sv(2,i) + bumpdist*ryij
@@ -121,7 +124,7 @@
 !          			k.e. not high enough, therefore they bounce
            		else
 	      			ratio=rmass*bij/wellsq
-              		coltype(i)=22
+              			coltype(i)=22
               		sv(1,i) = sv(1,i) - bumpdist*rxij
               		sv(2,i) = sv(2,i) - bumpdist*ryij
               		sv(3,i) = sv(3,i) - bumpdist*rzij
@@ -162,7 +165,7 @@
 	   		bumpdist=smdist*dsqrt(wellsq)
            		if (bij*bij .gt. -del_pe) then
 !    	      			particles are moving fast enough to jump into the square shoulder
-	      			ratio=rmass*(dsqrt(del_pe+bij*bij)+bij)/(2.d0*wellsq)
+				ratio=rmass*(dsqrt(del_pe+bij*bij)+bij)/(2.d0*wellsq)
 	      			coltype(i)=25
               		sv(1,i) = sv(1,i) - bumpdist*rxij
               		sv(2,i) = sv(2,i) - bumpdist*ryij
@@ -224,11 +227,11 @@
 		elseif (coltype(i).eq.1) then
 !       		core collision	
            		if (evcode .eq. 15) then
-              		if (bptnr(i) .eq. j) then
+              			if (bptnr(i) .eq. j) then
                  			sigsq = sigma_sq(identity(i),identity(j))*ev_param(1,evcode)**2
-              		else
+              			else
                  			sigsq = sigma_sq(identity(i),identity(j))
-              		end if
+              			end if
            		else
               		sigsq = sigma_sq(identity(i),identity(j))*ev_param(1,evcode)**2
               		if(evcode.ge.22.and.evcode.le.26) then
@@ -255,7 +258,7 @@
            		else    
 ! 				bounce
 	      			ratio=rmass*bij/wellsq
-              		coltype(i)=22
+              			coltype(i)=22
 	   			bumpdist=smdist*dsqrt(wellsq)
            			sv(1,i) = sv(1,i) + bumpdist*rxij
            			sv(2,i) = sv(2,i) + bumpdist*ryij
@@ -364,6 +367,8 @@
 		!LRStart - start of 3rd species block
 		
 	endif
+
+	
 
 	delvx=ratio*rxij
 	delvy=ratio*ryij

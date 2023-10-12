@@ -1,6 +1,9 @@
-!	subroutine sqwel finds square shoulder event time and type for i,j
-!      pair; 4=sw capture, 5=sw dissociation, 6=sw bounce
-!      only eligible side chain pairs make it into this subroutine
+! ============================================================================
+! Subroutine sqshlder finds square shoulder event time and type for i,j pair; 
+! 4=sw capture, 5=sw dissociation, 6=sw bounce
+! Only eligible side chain pairs make it into this subroutine  	  
+! Last modified on 10/12/2023 by Van Nguyen
+! ============================================================================
 
 	subroutine sqshlder(i,j,evcode,tij,type)
 

@@ -1,3 +1,8 @@
+! =========================================================================
+! This module defines global parameters and variables used for generating initial configuration
+! This is a serial job
+! Last modified on 10/12/2023 by Van Nguyen
+! =========================================================================
 module inputreadin
 	implicit none
 !	If any value on the second column of output.out is larger than the 0.01 tolerance, adjust
@@ -90,12 +95,11 @@ module inputreadin
 	character(len=31) pep1, pep2
 	integer nb1,numbeads1,nopwg1,nop1
 	integer nb2,numbeads2,nopwg2,nop2
-	!integer nb1p,nb21p,chnln1p
 	integer chnln1,nc,numgly1
 	integer chnln2,nc2,numgly2
-	integer simcoll, numsim
+	integer simcoll, numsim, annealcheck,annealcoll
 	real*8 boxlength
-	real simtemp
+	real simtemp, maxannealing, minannealing, incrannealing
 	real maxtemp, mintemp
 	character*517 ::  path, mydir, rundir
 	integer realpath, annealingsteps, simsteps, stepcount, newold, constep
