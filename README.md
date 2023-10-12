@@ -22,18 +22,18 @@ Requirements to start a simulation including:
 
 >**Note 1:** The current version can run simulations for system with 1 or 2 peptide sequences; each with maximum length of 30 residues. If system contains only 1 peptide sequence, then sequence 1 and 2 should be the same in the 'input.txt'
 
->**Note 2:** The current version only allows annealing simulation with a fixed set of temperatures. Please do not change the value of 'annealing'. Upcoming version will allow user to define annealing temperatures and time to run annealing simulation.
+>**Note 2:** The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1).
 
 >**Note 3:** If an error is returned and the simulation is terminated during the generating of initital configuration. Adding another parameter to the end of **input.txt**: 
 >
 >	*sidechainmove* = value that is larger than 3.0	
 >	
 >It is recommended to increase only 0.5 at a time starting from 3.0. A very large number will make the initial configuration generation very slow`
-- **submissionscript.sh** is an example of bash script that is used to submit a job. This file is in the most basic format and will need to be modified according to your computer system.
-- **nohup.out** shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. *nohup.out* must be deleted before any simulation if it exists to avoid being confused by old data.  
+- **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system.
+- The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
 - 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
 	- `/checks/`: files for checking if the initial configuration is created correctly
-	- `/inputs/`: files to record residue id and positions for each peptide sequence  
+	- `/inputs/`: files to record residue id (identity.inp and identity2.inp), positions for each peptide sequence (chninfo-n1.data and chninfo-n2.data), reduced annealing temperatures (annealtemp_*), and reduced simulation temperature (simtemp)   
 	- `/outputs/`: output files for each simulation round
 	- `/parameters/`: sidechain parameters generated from the inital configuration step that are required for simulation steps
 	- `/results/`:  simulation results for data analysis
@@ -45,8 +45,8 @@ Requirements to start a simulation including:
 		6. .rca: distance from sidechain to each particle in the backbone of a residue
 >Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories. 
 ## Running simulation
-DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides.
-
+DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides. Concentration in DMD-PRIME20 is defined by numbers of peptide chains and the simulation box length which is found as:
+$$ boxl = {{Total number of peptide chains*1000} \over {Avogadro^' s number*Concentration}}^(1/3)*10^9} $$
 ### Submit a job:
 Steps to submit a simulation is as follow. These steps are after the package is succesfully installed on your device and *the path to executable file is obtained*.
 1. Make a directory to run simulation or copy over the /'example/' directory, rename and then delete all files within subdirectories and *nohup.out*. If making new directory, follow the next steps. 
