@@ -80,7 +80,7 @@ If using default temperature, *number_of_temperatures_use_for_annealing = 9*
 
 If using user-defined temperature:
 
-$$ \text{number_of_temperatures_use_for_annealing} = \frac{\text{Starting temperature - Ending temperature}}{\text{decrement}} $$
+$$ \text{number of temperatures use for annealing} = \frac{\text{Starting temperature - Ending temperature}}{\text{decrement}} + 1 $$
 
 
 
