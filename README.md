@@ -70,7 +70,7 @@ For example: If you save the package to '/home/user/Parallel-DMD-PRIME20' then t
 > **/home/user/Parallel-DMD-PRIME20/src**/initconfig
 
 Before a DMD simulation, the system will be heated to a high temperature and then be slowly annealed to the desired temperature. This step is to make sure that all peptide chains are denatured and that the DMD simulation starts with all random coils. The submission command for annealing process is as follow.
-> foreach i (\text{`} seq 1 number_of_temperatures_use_for_annealing \text{`})
+> foreach i (`seq 1 number_of_temperatures_use_for_annealing`)
 > 
 > mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
 > 
@@ -82,9 +82,12 @@ If using user-defined temperature:
 
 $$ \text{number of temperatures use for annealing} = \frac{\text{Starting temperature - Ending temperature}}{\text{decrement}} + 1 $$
 
-
-
-The numbers of collisions are defined by users. Larger system will need longer simulation times. It is recommended to start the simulation with no longer than 100 billion collisions. If the system has not aggregated after 100 billion collision, the simulations can be extended.
+The simulation temperature and numbers of collisions are defined by users. Larger system will need longer simulation times. The frequency to write ouput is defined in *input.txt*. This value is called a round of simulation. The total number of collisions will depend on number of simulation rounds which is defined in submission script.
+> foreach i (`seq 1 number_of_simulation_round`)
+> 
+> mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/simtemp_$i > outputs/out_simtemp_$i
+> 
+> end
 
 ## Developing Status
 The software is being developed and updated. An result analysis package is being developed.
