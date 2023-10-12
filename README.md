@@ -77,9 +77,10 @@ Before a DMD simulation, the system will be heated to a high temperature and the
 > end
 
 If using default temperature, *number_of_temperatures_use_for_annealing = 9*
+
 If using user-defined temperature:
 
-$$ number_of_temperatures_use_for_annealing = \frac{\text{Starting temperature - Ending temperature}{\text{decrement}} + 1 $$
+$$ number_of_temperatures_use_for_annealing = \frac{\text{Starting temperature - Ending temperature}{\text{decrement}} $$
 
 
 
