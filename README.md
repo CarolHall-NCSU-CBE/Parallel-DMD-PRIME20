@@ -70,7 +70,7 @@ For example: If you save the package to '/home/user/Parallel-DMD-PRIME20' then t
 > **/home/user/Parallel-DMD-PRIME20/src**/initconfig
 
 Before a DMD simulation, the system will be heated to a high temperature and then be slowly annealed to the desired temperature. This step is to make sure that all peptide chains are denatured and that the DMD simulation starts with all random coils. The submission command for annealing process is as follow.
-> foreach i (`seq 1 number_of_temperatures_use_for_annealing`)
+> foreach i (\text{`} seq 1 number_of_temperatures_use_for_annealing \text{`})
 > 
 > mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
 > 
