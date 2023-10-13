@@ -41,7 +41,11 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 	- **T** is simulation temperature in *Kelvin*. When start simulations for a new system, it is recommended to run multiple simulations of the same system at different temperatures. Check the simulation results to select the temperature that predict high order peptide aggregation. The simulation might get stuck in local miminima if the temperature is too low, but there is no aggregation if the temperature is too low.
  	- **coll** which is the number of collisions for DMD-PRIME20 to finish a *round* and record simulation results. DMD-PRIME20 is designed to run, complete and record in many rounds to avoid large result files and to allow the simulation to restart if it is crashed midway. As DMD is discontinous molecular dynamics simulation, collsion (coll) is used instead of timestep. Collision will be converted to real time when running data analysis package (underdevelopment and will be updated soon). There is not a fix value in real time for a collision.    
 
->**Note 2:** The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1).
+	- **Annealing**: The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1). If using user-defined temperature, include addtional parameters below the annealing line:
+ 		- **starting_temp**: starting temperature for the annealing process (in *Kelvin*)
+		- **ending_temp**: ending temperature for the annealing process (in *Kelvin*)
+		- **temp_step**: temperature drop for each annealing cycle (in *Kelvin*)
+  		- **annealing_coll**: number of collisions for each temperature in annealing process. Recommended value is from 100 		million to 250 million collisions   
 
 >**Note 3:** If an error is returned and the simulation is terminated during the generating of initital configuration. Adding another parameter to the end of **input.txt**: 
 >
