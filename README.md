@@ -70,7 +70,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 - An example of **input.txt** that include parameters for are use-defined annealing temperature is below. If running simulaiton with default annealing temperature, set annealing = 0 and delete all parameter below that line.
 >
 	Peptide sequence 1
->
+
 	pep1=GVLYVGS
  
 	Number of peptide 1 chains in the system
