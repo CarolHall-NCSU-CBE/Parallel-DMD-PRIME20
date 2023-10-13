@@ -28,7 +28,7 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 ## Getting Started   
 **/example/**: this directory contains an example of required file and subdirectories for a simulation using DMD/PRIME20.
 Requirements to start a simulation including:
-- **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
+1. **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
 	- **pep1** and **pep2** are sequences of the peptides that are simulated. It must be in abbrevating alphabetical format (e.g. pep1=GVLYVGS) . The current version can run simulations for system with single or double components; each with maximum length of 30 residues. If system contains single peptide sequence, then *pep1* and *pep2* must be the same in the 'input.txt'
 
 	- **chain1** and **chain2** are the number of peptide chains of each peptide component in the simulation box. If the peptide is long, *chain1* and *chain2* should be reduced to avoid overcrowding, overlapping and to reduce simulation time. The largest system has been simulated using DMD-PRIME20 contains 200 peptides chains.
@@ -66,7 +66,49 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 		4. .lastvel: collision, velocities 
 		5. .pdb: pdb file
 		6. .rca: distance from sidechain to each particle in the backbone of a residue
->Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories. 
+>Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories.
+- An example of **input.txt** that include parameters for are use-defined annealing temperature is below. If running simulaiton with default annealing temperature, set annealing = 0 and delete all parameter below that line.
+>
+	Peptide sequence 1
+>
+	pep1=GVLYVGS
+ 
+	Number of peptide 1 chains in the system
+ 
+	chain1=3
+ 
+	Peptide sequence 2
+ 
+	pep2=GVLYVGS
+ 
+	Number of peptide 2 chains in the system
+	
+ 	chains=3
+	
+ 	Box length in Angstrom
+
+ 	boxlength=159.0D0
+	
+ 	Simulation temperature in Kelvin
+	
+ 	T=310.0D0
+	
+ 	Result recording frequency in collisions
+	
+ 	coll=1000000000
+	
+ 	Annealing process only for new simulation: 0 is the default, 1 is the specified temperatures in Kelvin
+	
+ 	annealing = 1
+	
+ 	max = 1000.0
+	
+ 	min = 375.0
+	
+ 	temp_step = 125
+	
+ 	annealing_coll = 100000000
+
 ## Running simulation
 DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides. Concentration in DMD-PRIME20 is defined by numbers of peptide chains and the simulation box length which is found as:
 
