@@ -47,7 +47,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 		- **temp_step**: temperature drop for each annealing cycle (in *Kelvin*)
   		- **annealing_coll**: number of collisions for each temperature in annealing process. Recommended value is from 100 		million to 250 million collisions   
 
->**Note 3:** If an error is returned and the simulation is terminated during the generating of initital configuration. Adding another parameter to the end of **input.txt**: 
+>**Note:** If an error is returned and the simulation is terminated during the generating of initital configuration. Adding another parameter to the very end of **input.txt**: 
 >
 >	*sidechainmove* = value that is larger than 3.0	
 >	
