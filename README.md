@@ -25,8 +25,9 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 **/example/**: this directory contains an example of required file and subdirectories for a simulation using DMD/PRIME20.
 Requirements to start a simulation including:
 - **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
-
->**Note 1:** The current version can run simulations for system with 1 or 2 peptide sequences; each with maximum length of 30 residues. If system contains only 1 peptide sequence, then sequence 1 and 2 should be the same in the 'input.txt'
+> **pep1** and **pep2** are sequences of the peptides that are simulated. It must be in abbrevating alphabetical format (e.g. pep1=GVLYVGS) . The current version can run simulations for system with single or double components; each with maximum length of 30 residues. If system contains single peptide sequence, then *pep1* and *pep2* must be the same in the 'input.txt'
+>
+> **chain1** and **chain2** are the number of peptide chains of each peptide component in the simulation box. If the peptide is long, *chain1* and *chain2* should be reduced to avoid overcrowding, overlapping and to reduce simulation time.  
 
 >**Note 2:** The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1).
 
