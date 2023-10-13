@@ -16,7 +16,7 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 - The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directoy on your local device. Once in '/src/' directory, create the executed files by enter the commands below:
   	- To create **initconfig** for generating initial configuration
 
-	**make -f genconfig.mk**
+> 	**make -f genconfig.mk**
  	- To create **DMDPRIME20** for DMD simulations
 
 	**make -f dmd.mk** 
