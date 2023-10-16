@@ -124,12 +124,7 @@
       	pi=4.d0*datan(1.d0)
 	call readinputs()
 	noptotal = nop1+nop2
-	call allocatearrays()
-      	if (newold == 0) then
-		totalsteps = annealingsteps+numsim
-	else
-		totalsteps = numsim
-	endif	
+	call allocatearrays()	
 	read(5,*) setemp
       	setemp =  setemp*12.d0
       	read(5,*) ncoll
