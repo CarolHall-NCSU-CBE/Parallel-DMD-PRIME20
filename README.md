@@ -13,21 +13,21 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 - Parallelizing is done using Message Passing Interface (MPI)
 - OpenMPI compiler for Fortran `mpif90` is required. OpenMPI Fortran Compiler must be installed on your device or the module that contains the compiler must be loaded before compiling. 
 - The installation is through the terminal.
-- The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directoy on your local device. Once in '/src/' directory, create the executed files by enter the commands below.
-1. To create **initconfig** for generating initial configuration
+- The source codes are in `/src/`. To compile, open a terminal and then navigate to the `/src/` directory on your local device. Once in `/src/` directory, create the executed files by enter the commands below.
+1. To create `initconfig` for generating initial configuration
 >
  	make -f genconfig.mk
 
-2. To create **DMDPRIME20** for DMD simulations
+2. To create `DMDPRIME20` for DMD simulations
 >
 	make -f dmd.mk 
-- If there is no error return, check if **initconfig** and **DMDPRIME20** are succesfully created in *src*
+- If there is no error return, check if `initconfig` and `DMDPRIME20` are succesfully created in *src*
 - Obtain the paths to these executable files to use in job submission.
 >**Note:** if redownload the package or update a new version, the previous steps need to be redo. 
 
 ## Getting Started   
 **/example/**: this directory contains an example of required file and subdirectories for a simulation using DMD/PRIME20.
-Requirements to start a simulation including **input.txt** and **parallelscript.csh** and 5 empty directories to record simulation ouputs - **/checks/**, **/inputs/**, **/outputs/**, **/parameters/**, and **/results/**.
+Requirements to start a simulation including **input.txt** and **parallelscript.csh** and 5 empty directories to record simulation ouputs - `/checks/`, `/inputs/`, `/outputs/`, `/parameters/`, and `/results/`.
 1. **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
 	- **pep1** and **pep2** are sequences of the peptides that are simulated. It must be in abbrevating alphabetical format (e.g. pep1=GVLYVGS) . The current version can run simulations for system with single or double components; each with maximum length of 30 residues. If system contains single peptide sequence, then *pep1* and *pep2* must be the same in the 'input.txt'
 
@@ -117,7 +117,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	end
 
-- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*. The path to the executable file *initconfig* must be specifed. 
+- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in `/inputs/`, `/parameters/`, and `/results/` directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*. The path to the executable file `initconfig` must be specifed. 
 - Annealing: This step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
 	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealingrounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
  	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealingrounds** is found as:
@@ -129,7 +129,7 @@ $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempst
  	- Continuing simulation or restarting crashed simulation: **start** = (the last completed simulation round + 1) and **end** = number of simulation rounds.
   		- For countinuing simulation: if the previous simulation ends after 100 simulation rounds, then to countinue the simulation to 200 simulation collisions set ``foreach i (`seq 101 200`)``
 		- For crashed or incomplete simulation: if the previous simulation was set for 100 simulation rounds, but for some reasons the simulation partilly finishes at 80 simulation rounds. User must delete all the output files relating to the incomplete simulation in */results/* and */outputs/* meaning that the last complete simulation is at the round 79. Then simultion can be restart by setting ``foreach i (`seq 80 100`)``. When restarting a simulation, generating initial configuration and annealing must be skipped.
-- Both Annealing and DMD simulation are designed to utilize the benefit of parallel performance. Therefore, both commands are executed using 'mpirun'. Both steps are computed using the executable file **DMDPRIME20**, so the path to this file is required to be specified. Temperatures and number of collisions at each temperatures must be access from **/inputs/** directory and the output files will be saved in **/outputs/** directory. The names and locations of these files are designated and cannot be changed. 
+- Both Annealing and DMD simulation are designed to utilize the benefit of parallel performance. Therefore, both commands are executed using 'mpirun'. Both steps are computed using the executable file `DMDPRIME20`, so the path to this file is required to be specified. Temperatures and number of collisions at each temperatures must be access from `/inputs/` directory and the output files will be saved in `/outputs/` directory. The names and locations of these files are designated and cannot be changed. 
 
 
 - The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
