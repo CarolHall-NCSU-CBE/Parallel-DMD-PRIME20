@@ -121,7 +121,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealing_rounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
  	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealing_rounds** is found as:
 
-     $$ \text{annealing_rounds} = \frac{\text{Starting temperature - Ending temperature}}{\text{temp_step}} + 1 $$
+$$ \text{annealing_rounds} = \frac{\text{Starting temperature - Ending temperature}}{\text{temp_step}} + 1 $$
 
 
 
