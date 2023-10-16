@@ -52,21 +52,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 >	*sidechainmove* = value that is larger than 3.0	
 >	
 >It is recommended to increase only 0.5 at a time starting from 3.0. A very large number will make the initial configuration generation very slow`
-- **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system.
-- The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
-- 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
-	- `/checks/`: files for checking if the initial configuration is created correctly
-	- `/inputs/`: files to record residue id (identity.inp and identity2.inp), positions for each peptide sequence (chninfo-n1.data and chninfo-n2.data), reduced annealing temperatures (annealtemp_*), and reduced simulation temperature (simtemp)   
-	- `/outputs/`: output files for each simulation round
-	- `/parameters/`: sidechain parameters generated from the inital configuration step that are required for simulation steps
-	- `/results/`:  simulation results for data analysis
-		1. .bptnr: collision, bond partner of each particle
-		2. .config: collision, time, particle coordinates
-		3. .energy: collision, time, kinetic energy, total energy, etc.
-		4. .lastvel: collision, velocities 
-		5. .pdb: pdb file
-		6. .rca: distance from sidechain to each particle in the backbone of a residue
->Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories.
+
 - An example of **input.txt** that include parameters for are use-defined annealing temperature is below. If running simulaiton with default annealing temperature, set annealing = 0 and delete all parameter below that line.
 >
 	Peptide sequence 1
@@ -108,6 +94,22 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
  	temp_step = 125
 	
  	annealing_coll = 100000000
+- **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system.
+- The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
+- 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
+	- `/checks/`: files for checking if the initial configuration is created correctly
+	- `/inputs/`: files to record residue id (identity.inp and identity2.inp), positions for each peptide sequence (chninfo-n1.data and chninfo-n2.data), reduced annealing temperatures (annealtemp_*), and reduced simulation temperature (simtemp)   
+	- `/outputs/`: output files for each simulation round
+	- `/parameters/`: sidechain parameters generated from the inital configuration step that are required for simulation steps
+	- `/results/`:  simulation results for data analysis
+		1. .bptnr: collision, bond partner of each particle
+		2. .config: collision, time, particle coordinates
+		3. .energy: collision, time, kinetic energy, total energy, etc.
+		4. .lastvel: collision, velocities 
+		5. .pdb: pdb file
+		6. .rca: distance from sidechain to each particle in the backbone of a residue
+>Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories.
+
 
 ## Running simulation
 DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides. Concentration in DMD-PRIME20 is defined by numbers of peptide chains and the simulation box length which is found as:
