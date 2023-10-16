@@ -118,7 +118,10 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 - Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*.
 - Annealing: this step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
-	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealing_rounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.    
+	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealing_rounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
+ 	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealing_rounds is found as:
+
+     $$ \text{annealing_rounds} = \frac{\text{Starting temperature - Ending temperature}}{\text{temp_step}} + 1 $$
 
 
 
@@ -171,7 +174,7 @@ If using default temperature, *number_of_temperatures_use_for_annealing = 9*
 
 If using user-defined temperature:
 
-$$ \text{number of temperatures use for annealing} = \frac{\text{Starting temperature - Ending temperature}}{\text{decrement}} + 1 $$
+
 
 The simulation temperature and numbers of collisions are defined by users. Larger system will need longer simulation times. The frequency to write ouput is defined in *input.txt*. This value is called a round of simulation. The total number of collisions will depend on number of simulation rounds which is defined in submission script.
 > foreach i (`seq 1 number_of_simulation_round`)
