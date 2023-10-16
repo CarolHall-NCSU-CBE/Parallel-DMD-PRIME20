@@ -2,8 +2,9 @@
 ## Table of contents
 * [Introduction](#introduction)
 * [Requirement and Installation](#requirement-and-installation)
-* [Getting Started](#getting-started)
 * [Running Simulation](#running-simulation)
+** [Getting Started](#getting-started)
+** [Submit A Job](#submit-a-job)
 * [Developing Status](#developing-status)
 ## Introduction
 PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein model that was developed by the Hall group at North Carolina State University. The model was designed to be used with discontinuous molecular dynamics simulations (DMD) to investigate self-assembly of short peptides from their random denatured states. We are developing the parallel version of DMD/PRIME20 to reduce the computational cost for DMD simulations. PRIME20 contains geometric and energetic parameters that describe the sidechain-sidechain interactions of all 20 natural amino acids. In PRIME20, each amino acid is represented by four beads: one for the amino group (NH), one for the alpha carbon (CαH), one for the carbonyl group (CO), and one for the side chain (R). DMD/PRIME20 simulation systems are canonical ensemble (NVT) with constant number of molecules (N), simulation box volume (V) and simulation temperature (T). Temperature is maintaned by using Anderson thermostat. Neutral pH water solvent is described implicitly within the force-field. Peptides that are built and simulated by PRIME20 are capped at both terminus. DMD/PRIME20 has been used successfully to simulate spontaneous α-helix, β-sheet, and amyloid fibril formation starting from the denatured conformations of peptides such as prion proteins fragments[1][2], tau protein fragments[3], Aβ16-22 peptides[4][5][6], and  Aβ17-36 peptides[7]. DMD/PRIME20 is also used with PepAD - a peptide design software, to discover amyloid-forming peptides [8].
@@ -23,9 +24,10 @@ PRIME20 is a coarse-grained, implicit-solvent, intermediate-resolution protein m
 	make -f dmd.mk 
 - If there is no error return, check if `initconfig` and `DMDPRIME20` are succesfully created in *src*
 - Obtain the paths to these executable files to use in job submission.
->**Note:** if redownload the package or update a new version, the previous steps need to be redo. 
+>**Note:** if redownload the package or update a new version, the previous steps need to be redo.
 
-## Getting Started   
+## Running simulation
+### Getting Started   
 **/example/**: this directory contains an example of required file and subdirectories for a simulation using DMD/PRIME20.
 Requirements to start a simulation including **input.txt** and **parallelscript.csh** and 5 empty directories to record simulation ouputs - `/checks/`, `/inputs/`, `/outputs/`, `/parameters/`, and `/results/`.
 1. **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
@@ -145,14 +147,6 @@ $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempst
 		f. .rca: distance from sidechain to each particle in the backbone of a residue
 
 >Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories. The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.
-
-
-## Running simulation
-DMD simulation using PRIME20 starts with building initial configuration. The current version is effective for system of no more than 30-residue peptides. It is recommended that concentration and number of peptide chains are reduced for longer peptides to avoid overlap due to overcrowding. User should check output file for overlapping error and reduce system size (number of peptides or concentration) if error is reported. PRIME20 allows simulations of a homogenous system or a heterogeneous system of two different peptides. Concentration in DMD-PRIME20 is defined by numbers of peptide chains and the simulation box length which is found as:
-
-
-
-
 
 ### Submit a job:
 Steps to submit a simulation is as follow. These steps are after the package is succesfully installed on your device and *the path to executable file is obtained*.
