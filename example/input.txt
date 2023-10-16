@@ -1,0 +1,17 @@
+Peptide sequence 1
+pep1=GVLYVGS
+Number of peptide 1 chains in the system
+chain1=3
+Peptide sequence 2
+pep2=GVLYVGS
+Number of peptide 2 chains in the system
+chains=3
+Box length in Angstrom
+boxlength=159.0D0
+Simulation temperature in Kelvin
+T=310.0D0
+Result recording frequency in collisions
+coll=1000000000
+Annealing process only for new simulation: 0 is the default, 1 is the specified temperatures in Kelvin
+annealing = 0
+
