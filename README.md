@@ -35,15 +35,15 @@ Requirements to start a simulation including **input.txt** and **parallelscript.
 1. **input.txt**: Please follow the format to enter all parameters that are required for a simulation. The explanation for each parameters are also included in the file.
 	- **pep1** and **pep2** are sequences of the peptides that are simulated. It must be in abbrevating alphabetical format (e.g. pep1=GVLYVGS) . The current version can run simulations for system with single or double components; each with maximum length of 30 residues. If system contains single peptide sequence, then *pep1* and *pep2* must be the same in the 'input.txt'
 
-	- **chain1** and **chain2** are the number of peptide chains of each peptide component in the simulation box. If the peptide is long, *chain1* and *chain2* should be reduced to avoid overcrowding, overlapping and to reduce simulation time. The largest system has been simulated using DMD-PRIME20 contains 200 peptides chains.
+	- **chain1** and **chain2** are the number of peptide chains of each peptide component in the simulation box. If the peptide is long, *chain1* and *chain2* should be reduced to avoid overcrowding, overlapping and to reduce simulation time. The largest system has been simulated using DMD/PRIME20 contains 200 peptides chains.
 
-	- **boxlength** is the length of the simulation box. DMD-PRIME20 uses cubic box with periodic boundary condition for all simulations. *boxlength* is selected based on the number of peptide chains and concentration:
+	- **boxlength** is the length of the simulation box. DMD/PRIME20 uses cubic box with periodic boundary condition for all simulations. *boxlength* is selected based on the number of peptide chains and concentration:
 
 $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro's number * Concentration}})^\frac{1}{3}*10^9 $$
 * where *Concentration* is in *mM* and *boxlength* is in *Angstrom*
 
 	- **T** is simulation temperature in *Kelvin*. When start simulations for a new system, it is recommended to run multiple simulations of the same system at different temperatures. Check the simulation results to select the temperature that predict high order peptide aggregation. The simulation might get stuck in local miminima if the temperature is too low, but there is no aggregation if the temperature is too low.
- 	- **coll** which is the number of collisions for DMD-PRIME20 to finish a *round* and record simulation results. DMD-PRIME20 is designed to run, complete and record in many rounds to avoid large result files and to allow the simulation to restart if it is crashed midway. As DMD is discontinous molecular dynamics simulation, collsion (coll) is used instead of timestep. Collision will be converted to real time when running data analysis package (underdevelopment and will be updated soon). There is not a fix value in real time for a collision.    
+ 	- **coll** which is the number of collisions for DMD/PRIME20 to finish a *round* and record simulation results. DMD/PRIME20 is designed to run, complete and record in many rounds to avoid large result files and to allow the simulation to restart if it is crashed midway. As DMD is discontinous molecular dynamics simulation, collsion (coll) is used instead of timestep. Collision will be converted to real time when running data analysis package (underdevelopment and will be updated soon). There is not a fix value in real time for a collision.    
 
 	- **Annealing**: The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1). If using user-defined temperature, include addtional parameters below the annealing line:
  		- **startingtemp**: starting temperature for the annealing process (in *Kelvin*)
@@ -121,7 +121,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	end
 
-- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in `/inputs/`, `/parameters/`, and `/results/` directories. In `/results/`, output files from generating inital configuration are named with *0000*. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*. The path to the executable file `initconfig` must be specifed. 
+- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in `/inputs/`, `/parameters/`, and `/results/` directories. In `/results/`, output files from generating inital configuration are named with *0000*. These files are required for any DMD/PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD/PRIME20 simulation is parallelized, this step is done in *serial*. The path to the executable file `initconfig` must be specifed. For example: If you save the package to `/home/user/Parallel-DMD-PRIME20` then the path to executable file will be `/home/user/Parallel-DMD-PRIME20/src/`. Your submission script will look like: `/home/user/Parallel-DMD-PRIME20/src**/initconfig`
 - Annealing: This step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
 	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealingrounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
  	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealingrounds** is found as:
@@ -133,7 +133,7 @@ $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempst
  	- Continuing simulation or restarting crashed simulation: **start** = (the last completed simulation round + 1) and **end** = number of simulation rounds.
   		- For countinuing simulation: if the previous simulation ends after 100 simulation rounds, then to countinue the simulation to 200 simulation collisions set ``foreach i (`seq 101 200`)``
 		- For crashed or incomplete simulation: if the previous simulation was set for 100 simulation rounds, but for some reasons the simulation partilly finishes at 80 simulation rounds. User must delete all the output files relating to the incomplete simulation in */results/* and */outputs/* meaning that the last complete simulation is at the round 79. Then simultion can be restart by setting ``foreach i (`seq 80 100`)``. When restarting a simulation, generating initial configuration and annealing must be skipped.
-- Both Annealing and DMD simulation are designed to utilize the benefit of parallel performance. Therefore, both commands are executed using `mpirun`. Both steps are computed using the executable file `DMDPRIME20`, so the path to this file is required to be specified. Temperatures and number of collisions at each temperatures must be access from `/inputs/` directory and the output files will be saved in `/outputs/` directory. The names and locations of these files are designated and cannot be changed. 
+- Both Annealing and DMD simulation are designed to utilize the benefit of parallel performance. Therefore, both commands are executed using `mpirun`. Both steps are computed using the executable file `DMDPRIME20`, so the path to this file is required to be specified similar to the example for `initconfig` Temperatures and number of collisions at each temperatures must be access from `/inputs/` directory and the output files will be saved in `/outputs/` directory. The names and locations of these files are designated and cannot be changed. 
  
 3. 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
 	- `/checks/`: files for checking if the initial configuration is created correctly
@@ -152,40 +152,13 @@ $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempst
 
 ### Submit a job:
 Steps to submit a simulation is as follow. These steps are after the package is succesfully installed on your device and *the path to executable file is obtained*.
-1. Make a directory to run simulation or copy over the /'example/' directory, rename and then delete all files within subdirectories and *.out*. If making new directory, follow the next steps. 
+1. Make a directory to run simulation or copy over the `/example/` directory, rename and then delete all files within subdirectories and `*.out`. If making new directory, follow the next steps. 
 2. In this directory, make an 'input.txt' file following the example. You can copy over this file and change the parameters correspoding to your system.
 3. In this directory, make 5 empty subdirectories at listed above if running a new simulation, or copy over these subdirectories with all data in them for a continuing simulation. 
-4. Submit job. It is not recommended to run DMD/PRIME20 on a login node as a job can take days to finish. A simple tcsh script (.csh) to submit job is attached in '/example/'. There are three steps to run a new simulations:
-
-4.1 Generate initial configuration. This step is done in serial. Replace the bold line by the real path to *initconfig* on your system.
-> /**path_to_executive_file_initconfig**/initconfig
-
-For example: If you save the package to '/home/user/Parallel-DMD-PRIME20' then the path to executable file will be '/home/user/Parallel-DMD-PRIME20/src/'. Your submission script will look like:
-
-> **/home/user/Parallel-DMD-PRIME20/src**/initconfig
-
-Before a DMD simulation, the system will be heated to a high temperature and then be slowly annealed to the desired temperature. This step is to make sure that all peptide chains are denatured and that the DMD simulation starts with all random coils. The submission command for annealing process is as follow.
-> foreach i (`seq 1 number_of_temperatures_use_for_annealing`)
-> 
-> mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
-> 
-> end
-
-If using default temperature, *number_of_temperatures_use_for_annealing = 9*
-
-If using user-defined temperature:
-
-
-
-The simulation temperature and numbers of collisions are defined by users. Larger system will need longer simulation times. The frequency to write ouput is defined in *input.txt*. This value is called a round of simulation. The total number of collisions will depend on number of simulation rounds which is defined in submission script.
-> foreach i (`seq 1 number_of_simulation_round`)
-> 
-> mpirun /**path_to_executive_file_DMDPRIME20**/DMDPRIME20 < inputs/simtemp_$i > outputs/out_simtemp_$i
-> 
-> end
+4. Submit job. It is not recommended to run DMD/PRIME20 on a login node as a job can take days to finish. A simple tcsh script (.csh) to submit job is attached in `/example/`.
 
 ## Developing Status
-The software is being developed and updated. An result analysis package is being developed.
+The software is being developed and updated. An result analysis package will be updated soon.
 
 ## References:
 [1] Wang, Y., Shao, Q., and Hall, C. K. N-terminal Prion Protein Peptides (PrP(120–144)) Form Parallel In-register β-Sheets via Multiple Nucleation-dependent Pathways. Journal of Biological Chemistry. Vol. 292, Issue 50. (2016). https://doi.org/10.1074/jbc.M116.744573
