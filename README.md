@@ -94,7 +94,26 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
  	temp_step = 125
 	
  	annealing_coll = 100000000
-- **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system.
+2. **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system. Main content of the script is the three steps of simulations
+>
+# Generate initial configuration for new simulation:
+/path_to_initconfig/initconfig
+
+# Annealing:	
+foreach i (`seq 1 n`)
+mpirun /path_to_DMDPRIME20/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
+end
+
+# DMD simulations
+foreach i (`seq 1 n`)
+mpirun /path_to_DMDPRIME20/DMDPRIME20 < inputs/simtemp > outputs/out_simtemp_$i
+end
+
+
+
+
+
+
 - The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
 - 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
 	- `/checks/`: files for checking if the initial configuration is created correctly
