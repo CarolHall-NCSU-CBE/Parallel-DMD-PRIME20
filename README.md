@@ -130,22 +130,21 @@ $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempst
   		- For countinuing simulation: if the previous simulation ends after 100 simulation rounds, then to countinue the simulation to 200 simulation collisions set ``foreach i (`seq 101 200`)``
 		- For crashed or incomplete simulation: if the previous simulation was set for 100 simulation rounds, but for some reasons the simulation partilly finishes at 80 simulation rounds. User must delete all the output files relating to the incomplete simulation in */results/* and */outputs/* meaning that the last complete simulation is at the round 79. Then simultion can be restart by setting ``foreach i (`seq 80 100`)``. When restarting a simulation, generating initial configuration and annealing must be skipped.
 - Both Annealing and DMD simulation are designed to utilize the benefit of parallel performance. Therefore, both commands are executed using `mpirun`. Both steps are computed using the executable file `DMDPRIME20`, so the path to this file is required to be specified. Temperatures and number of collisions at each temperatures must be access from `/inputs/` directory and the output files will be saved in `/outputs/` directory. The names and locations of these files are designated and cannot be changed. 
-
-
-- The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
-- 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
+ 
+3. 5 empty directories for data recording must be created before submitting a job. The names of these directories must be exact.
 	- `/checks/`: files for checking if the initial configuration is created correctly
 	- `/inputs/`: files to record residue id (identity.inp and identity2.inp), positions for each peptide sequence (chninfo-n1.data and chninfo-n2.data), reduced annealing temperatures (annealtemp_*), and reduced simulation temperature (simtemp)   
 	- `/outputs/`: output files for each simulation round
 	- `/parameters/`: sidechain parameters generated from the inital configuration step that are required for simulation steps
 	- `/results/`:  simulation results for data analysis
-		1. .bptnr: collision, bond partner of each particle
-		2. .config: collision, time, particle coordinates
-		3. .energy: collision, time, kinetic energy, total energy, etc.
-		4. .lastvel: collision, velocities 
-		5. .pdb: pdb file
-		6. .rca: distance from sidechain to each particle in the backbone of a residue
->Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories.
+		a. .bptnr: collision, bond partner of each particle
+		b. .config: collision, time, particle coordinates
+		c. .energy: collision, time, kinetic energy, total energy, etc.
+		d. .lastvel: collision, velocities 
+		e. .pdb: pdb file
+		f. .rca: distance from sidechain to each particle in the backbone of a residue
+
+>Note: These subdirectories in the **/example/** directory contains results from a short simulation for your reference. When running a new simulation, these subdirectories must be empty to avoid incorrectly data appending. When running a continuing simulation, keep all results from previous simulation in these directories. The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.
 
 
 ## Running simulation
