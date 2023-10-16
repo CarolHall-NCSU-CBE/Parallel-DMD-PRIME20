@@ -111,20 +111,24 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	#DMD simulations
 
-	foreach i (`seq 1 simulationrounds`)
+	foreach i (`seq start end`)
 
 		mpirun /path_to_DMDPRIME20/DMDPRIME20 < inputs/simtemp > outputs/out_simtemp_$i
 
 	end
 
-- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*.
-- Annealing: this step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
+- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*. The path to the executable file *initconfig* must be specifed. 
+- Annealing: This step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
 	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealingrounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
  	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealingrounds** is found as:
 
 $$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempstep}} + 1 $$
 
-
+- DMD Simulation: This is the DMD simulation step. The number of simulation rounds must be specified. Each simulation round will be run for a number of **coll** specied in *input.txt*. 
+	- Starting a new simulation: **start** = 1 and **end** = number of simulation rounds. The total simulation time is equal **coll** times **end**, so the value of **end** is dependent on how long user wants to run the simulation for and how often user wants to record outputs. It is recomended to run simulations for about 100 billion collisions first and then extending simulation times if aggregation has not happened. For example, if running for 100 simulation rounds then set *foreach i (`seq 1 100`)*
+ 	- Continuing simulation or restarting crashed simulation: **start** = (the last completed simulation round + 1) and **end** = number of simulation rounds.
+  		- For countinuing simulation: if the previous simulation ends after 100 simulation rounds, then to countinue the simulation to 200 simulation collisions set: *foreach i (`seq 101 200`)*
+    		- For crashed or incomplete simulation: if the previous simulation was set for 100 simulation rounds, but for some reasons the simulation partilly finishes at 80 simulation rounds. User must delete all the output files relating to the incomplete simulation in */results/* and */outputs/* meaning that the last complete simulation is at the round 79. Then simultion can be restart by setting *foreach i (`seq 80 100`)*. When restarting a simulation, generating initial configuration and annealing must be skipped.
 
 
 - The **.out** file shows an example of successful initial configuration generation. If your screen-written output look like this and no error showed, the initial configuration is successulffy generated. This *.out* file must be deleted before any simulation if it exists to avoid being confused by old data.  
