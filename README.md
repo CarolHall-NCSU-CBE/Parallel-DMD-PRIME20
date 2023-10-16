@@ -94,7 +94,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
  	temp_step = 125
 	
  	annealing_coll = 100000000
-2. **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system. Main content of the script is the three steps of simulations
+2. **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system. Main content of the script is the three steps of a simulation.
 >
 	#Generate initial configuration for new simulation:
 
@@ -116,7 +116,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	end
 
-
+- Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*. 
 
 
 
