@@ -42,10 +42,10 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
  	- **coll** which is the number of collisions for DMD-PRIME20 to finish a *round* and record simulation results. DMD-PRIME20 is designed to run, complete and record in many rounds to avoid large result files and to allow the simulation to restart if it is crashed midway. As DMD is discontinous molecular dynamics simulation, collsion (coll) is used instead of timestep. Collision will be converted to real time when running data analysis package (underdevelopment and will be updated soon). There is not a fix value in real time for a collision.    
 
 	- **Annealing**: The current version allows annealing simulation with a default set of temperatures (annealing = 0) or a user-defined temperatures (annealing = 1). If using user-defined temperature, include addtional parameters below the annealing line:
- 		- **starting_temp**: starting temperature for the annealing process (in *Kelvin*)
-		- **ending_temp**: ending temperature for the annealing process (in *Kelvin*)
-		- **temp_step**: temperature drop for each annealing cycle (in *Kelvin*)
-  		- **annealing_coll**: number of collisions for each temperature in annealing process. Recommended value is from 100 		million to 250 million collisions   
+ 		- **startingtemp**: starting temperature for the annealing process (in *Kelvin*)
+		- **endingtemp**: ending temperature for the annealing process (in *Kelvin*)
+		- **tempstep**: temperature drop for each annealing cycle (in *Kelvin*)
+  		- **annealingcoll**: number of collisions for each temperature in annealing process. Recommended value is from 100 		million to 250 million collisions   
 
 >**Note:** If an error is returned and the simulation is terminated during the generating of initital configuration. Adding another parameter to the very end of **input.txt**: 
 >
@@ -87,13 +87,14 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 	
  	annealing = 1
 	
- 	max = 1000.0
+ 	startingtemp = 1000.0
 	
- 	min = 375.0
+ 	endingtemp = 375.0
 	
- 	temp_step = 125
+ 	tempstep = 125
 	
- 	annealing_coll = 100000000
+ 	annealingcoll = 100000000
+  
 2. **parallelscript.csh** is an example of the tcsh script that is used to submit a job on an HPC system. This file will need to be modified according to users' computer system. Main content of the script is the three steps of a simulation.
 >
 	#Generate initial configuration for new simulation:
@@ -102,7 +103,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	#Annealing:
 
-	foreach i (`seq 1 annealing_rounds`)
+	foreach i (`seq 1 annealingrounds`)
 
 		mpirun /path_to_DMDPRIME20/DMDPRIME20 < inputs/annealtemp_$i > outputs/out_annealtemp_$i
 
@@ -110,7 +111,7 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 	#DMD simulations
 
-	foreach i (`seq 1 simulation_rounds`)
+	foreach i (`seq 1 simulationrounds`)
 
 		mpirun /path_to_DMDPRIME20/DMDPRIME20 < inputs/simtemp > outputs/out_simtemp_$i
 
@@ -118,10 +119,10 @@ $$ boxlength = (\frac{\text{Total number of peptide chains}*1000}{\text{Avogadro
 
 - Generating initial configuration for new simulation: This step is to create a cubic box that contents the number of peptide chains defined by users, position and velocity of each particles. Outputs of this step are saved in **/inputs/**, **/parameters/**, and **/results/** directories. These files are required for any DMD-PRIME20 simulation and need to be available in their designated locations. If restarting or resuming a simulation, this step is skipped as long as the initial configuration files are available. Although, DMD-PRIME20 simulation is parallelized, this step is done in *serial*.
 - Annealing: this step is to heat up the initial system to very high temperature and then slowly cool it down to near simulation temperature. This step is only required for simulation of a completely new system. The purpose of this step is to make sure all peptide chains are denatured and simulation starts with all random coils. There are two options for annealing:
-	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealing_rounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
- 	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealing_rounds** is found as:
+	- Default annealing (annealing = 0 in input.txt): The annealing process will be done with a default set of temperatures. These temperatures are used in many simulations since the software was developed. If using default annealing, set **annealingrounds** in the parallelscript.sch to **9**. This means the anneanling process runs at 9 different temperatures. The temperatures and number of collision at each temperature can be found in */inputs/* directory.
+ 	- User-defined annealing (annealing = 1 in input.txt): The annealing process will be done with the temperature range and number of collision that are defined by user. If using this option, the **annealingrounds** is found as:
 
-$$ \text{annealing_rounds} = \frac{\text{Starting temperature - Ending temperature}}{\text{temp_step}} + 1 $$
+$$ \text{annealingrounds} = \frac{\text{startingtemp - endingtemp}}{\text{tempstep}} + 1 $$
 
 
 
